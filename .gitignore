@@ -2,3 +2,4 @@ build/
 build-web/
 Taskfile.yml
 .direnv
+dist.zip

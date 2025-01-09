@@ -4,6 +4,7 @@ vars:
   BUILD_DIR: "./build/"
   WEB_BUILD_DIR: "./build-web/"
   OUT_FILE: "jamegam"
+  DIST_FILE: "dist.zip"
 
 tasks:
   prepare:
@@ -17,12 +18,14 @@ tasks:
     desc: "Builds the executable, with preparation"
     deps: ["prepare"]
     cmds:
+      - cp assets/* "{{.BUILD_DIR}}"
       - go build -o "{{.BUILD_DIR}}{{.OUT_FILE}}"
 
   run:
     desc: "Runs the built executable"
+    dir: "{{.BUILD_DIR}}"
     cmds:
-      - "{{.BUILD_DIR}}{{.OUT_FILE}}"
+      - "./{{.OUT_FILE}}"
 
   build-web:
     desc: "Builds the project for wasm"
@@ -31,9 +34,16 @@ tasks:
       GOOS: js
       GOARCH: wasm
     cmds:
+      - cp assets/* "{{.WEB_BUILD_DIR}}"
       - cp ./wasm_exec.js "{{.WEB_BUILD_DIR}}"
       - cp index.html "{{.WEB_BUILD_DIR}}"
       - go build -o "{{.WEB_BUILD_DIR}}{{.OUT_FILE}}.wasm"
+
+  dist-web:
+    desc: "Builds and packages for an itch.io web player"
+    deps: ["build-web"]
+    cmds:
+      - zip -r {{.DIST_FILE}} {{.WEB_BUILD_DIR}}
 
   dev:
     desc: "(Re-)Builds and runs the executable"
