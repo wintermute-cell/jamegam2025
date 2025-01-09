@@ -10,12 +10,14 @@
 pkgs.mkShell {
   buildInputs = with pkgs; [
     libGL
-
+    pkg-config
     xorg.libXi
     xorg.libXcursor
     xorg.libXrandr
     xorg.libXinerama
     xorg.libXxf86vm
+    alsa-lib.dev
+    alsa-lib
     wayland
     libxkbcommon
     jetbrains.goland
