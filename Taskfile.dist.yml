@@ -1,0 +1,29 @@
+version: '3'
+
+vars:
+  BUILD_DIR: "./build/"
+  OUT_FILE: "jamegam"
+
+tasks:
+  prepare:
+    internal: true
+    desc: "Does build prep (create dirs, copy files, ...)"
+    cmds:
+      - mkdir -p {{.BUILD_DIR}}
+    
+  build:
+    desc: "Builds the executable, with preparation"
+    deps: ["prepare"]
+    cmds:
+      - go build -o "{{.BUILD_DIR}}{{.OUT_FILE}}"
+
+  run:
+    desc: "Runs the built executable"
+    cmds:
+      - "{{.BUILD_DIR}}{{.OUT_FILE}}"
+
+  dev:
+    desc: "(Re-)Builds and runs the executable"
+    cmds:
+      - task: build
+      - task: run
