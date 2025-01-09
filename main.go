@@ -29,6 +29,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Bye, World!")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeDisabled)
 	game := &Game{}
 
 	var err error
