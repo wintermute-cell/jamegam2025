@@ -13,6 +13,13 @@ tasks:
     cmds:
       - mkdir -p "{{.WEB_BUILD_DIR}}"
       - mkdir -p "{{.BUILD_DIR}}"
+
+  clean:
+    desc: "removes all build and dist artifacts"
+    cmds:
+      - rm -r "{{.WEB_BUILD_DIR}}" || true
+      - rm -r "{{.BUILD_DIR}}" || true
+      - rm dist.zip || true
     
   build:
     desc: "Builds the executable, with preparation"
@@ -35,9 +42,7 @@ tasks:
       GOARCH: wasm
     cmds:
       - cp assets/* "{{.WEB_BUILD_DIR}}"
-      - cp ./wasm_exec.js "{{.WEB_BUILD_DIR}}"
-      - cp index.html "{{.WEB_BUILD_DIR}}"
-      - cp main.html "{{.WEB_BUILD_DIR}}"
+      - cp ./web-runtime/* "{{.WEB_BUILD_DIR}}"
       - go build -o "{{.WEB_BUILD_DIR}}{{.OUT_FILE}}.wasm"
 
   dist-web:
