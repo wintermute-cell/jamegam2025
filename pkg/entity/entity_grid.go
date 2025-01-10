@@ -3,8 +3,10 @@ package entity
 import (
 	"bufio"
 	"image/color"
+	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/towers"
+	"log"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -38,16 +40,20 @@ type EntityGrid struct {
 	mapTiles  [][]mapTileType
 
 	// Enemies and Towers
-	enemies map[lib.Vec2I][]Entity
-	towers  map[lib.Vec2I]towers.Tower
+	enemies    map[lib.Vec2I][]*enemy.Enemy
+	newEnemies map[lib.Vec2I][]*enemy.Enemy // Used for updating of enemy positions
+	towers     map[lib.Vec2I]towers.Tower
 
 	// Resources
 	platformImage *ebiten.Image
 	floorImage    *ebiten.Image
+
+	// TODO: REMOVE
+	REMOVE_enemyspawntimer float64
 }
 
 // GetEnemies implements towers.EnemyManager.
-func (e *EntityGrid) GetEnemies(point lib.Vec2, radius int) []towers.Enemy {
+func (e *EntityGrid) GetEnemies(point lib.Vec2, radius int) []enemy.Enemy {
 	panic("unimplemented")
 }
 
@@ -70,7 +76,8 @@ func NewEntityGrid(
 		enemyPath:     enemyPath,
 		platformImage: platformImage,
 		floorImage:    floorImage,
-		enemies:       make(map[lib.Vec2I][]Entity),
+		enemies:       make(map[lib.Vec2I][]*enemy.Enemy),
+		newEnemies:    make(map[lib.Vec2I][]*enemy.Enemy),
 		towers:        make(map[lib.Vec2I]towers.Tower),
 	}
 	return newEnt
@@ -102,6 +109,13 @@ func (e *EntityGrid) Init(EntitySpawner) {
 }
 
 func (e *EntityGrid) Update(EntitySpawner) error {
+	dt := lib.Dt()
+	e.REMOVE_enemyspawntimer += dt
+	if e.REMOVE_enemyspawntimer > 5.0 {
+		e.REMOVE_enemyspawntimer = 0
+		enem := enemy.NewEnemy(enemy.EnemyTypeBasic, 0, 1, 0.0)
+		e.enemies[lib.NewVec2I(0, 1)] = append(e.enemies[lib.NewVec2I(0, 1)], enem)
+	}
 
 	// Tower Placement
 	mouseX, mouseY := ebiten.CursorPosition()
@@ -112,6 +126,40 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 			tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
 			e.towers[e.hoveredTile] = tower
 		}
+	}
+
+	// Move Enemies
+	clear(e.newEnemies)
+	for _, cell := range e.enemies {
+		for _, enemy := range cell {
+			lastIdx, nextIdx := enemy.GetPathNodes()
+			progress := enemy.GetPathProgress()
+			progress += 1.0 * dt
+			log.Println("Enemy progress", progress)
+			enemy.SetPathProgress(progress)
+
+			if progress >= 0.5 {
+				// move to next cell
+				e.newEnemies[e.enemyPath[nextIdx]] = append(e.newEnemies[e.enemyPath[nextIdx]], enemy)
+			} else {
+				e.newEnemies[e.enemyPath[lastIdx]] = append(e.newEnemies[e.enemyPath[lastIdx]], enemy)
+			}
+
+			if progress >= 1.0 {
+				progress = 0
+				if nextIdx == len(e.enemyPath)-1 {
+					log.Println("Enemy reached the end")
+					panic("unimplemented")
+				}
+				enemy.SetPathNodes(lastIdx+1, nextIdx+1)
+				enemy.SetPathProgress(progress)
+			}
+		}
+	}
+	// e.enemies = e.newEnemies
+	clear(e.enemies)
+	for k, v := range e.newEnemies {
+		e.enemies[k] = v
 	}
 
 	// Update Towers
@@ -180,6 +228,27 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 			3.0,
 			color.RGBA{255, 0, 0, 255},
 			false)
+	}
+
+	// Draw Enemies
+	for _, cell := range e.enemies {
+		for _, enem := range cell {
+			progress := enem.GetPathProgress()
+			lastIdx, nextIdx := enem.GetPathNodes()
+			last := e.enemyPath[lastIdx].ToVec2()
+			next := e.enemyPath[nextIdx].ToVec2()
+			pos := last.Lerp(next, float32(progress))
+
+			geom := ebiten.GeoM{}
+			geom.Scale(4, 4)
+			geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
+			screen.DrawImage(enemy.SpriteEnemyBasic, &ebiten.DrawImageOptions{
+				GeoM: geom,
+			})
+
+			geom.Reset()
+			geom.Scale(4, 4)
+		}
 	}
 
 	// Draw Towers

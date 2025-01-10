@@ -124,8 +124,11 @@ func (v Vec2I) DistSq(v2 Vec2I) int {
 }
 
 // Lerp returns the linear interpolation between two vectors
-func (v Vec2I) Lerp(v2 Vec2I, t int) Vec2I {
-	return v.Add(v2.Sub(v).Mul(t))
+func (v Vec2I) Lerp(v2 Vec2I, t float32) Vec2I {
+	// TODO: this is not that performant, could do properly...
+	vf := v.ToVec2()
+	v2f := v2.ToVec2()
+	return vf.Lerp(v2f, t).ToVec2I()
 }
 
 // ToVec2 converts a Vec2I to a Vec2

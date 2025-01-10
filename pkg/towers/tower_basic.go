@@ -3,8 +3,6 @@ package towers
 import (
 	"jamegam/pkg/lib"
 	"log"
-
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 var _ Tower = &TowerBasic{}
@@ -21,9 +19,7 @@ func NewTowerBasic(position lib.Vec2I) *TowerBasic {
 
 // Update implements Tower.
 func (t *TowerBasic) Update(EnemyManager) error {
-	dt := 1.0 / ebiten.ActualTPS()
-
-	if t.ShouldFire(dt) {
+	if t.ShouldFire(lib.Dt()) {
 		// TODO:
 		// panic("unimplemented")
 		log.Println("TowerBasic fired!")

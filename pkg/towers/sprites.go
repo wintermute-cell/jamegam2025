@@ -7,9 +7,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-var spriteTowerBasic *ebiten.Image
-var spriteTowerSlowing *ebiten.Image
-var spriteTowerAoe *ebiten.Image
+var (
+	spriteTowerBasic   *ebiten.Image
+	spriteTowerSlowing *ebiten.Image
+	spriteTowerAoe     *ebiten.Image
+)
 
 func init() {
 	var err error

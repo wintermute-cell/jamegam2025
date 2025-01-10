@@ -1,6 +1,7 @@
 package towers
 
 import (
+	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,13 +13,5 @@ type Tower interface {
 }
 
 type EnemyManager interface {
-	GetEnemies(point lib.Vec2, radius int) []Enemy
-}
-
-type Enemy interface {
-	GetHealth() int
-	SetHealth(int)
-	GetSpeed() int
-	SetSpeed(int)
-	GetPosition() lib.Vec2
+	GetEnemies(point lib.Vec2, radius int) []enemy.Enemy
 }
