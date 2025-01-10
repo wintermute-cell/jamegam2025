@@ -25,9 +25,14 @@ type EntityInventory struct {
 	hoveredTile         lib.Vec2I
 	hoveredTileHasTower bool
 	hoveredTileIsOnPath bool
-	towerSelected       int
 
 	tilePixels int
+
+	// Tower Buttons
+	towerSelected         int
+	basicTowerNumber      int
+	basicTowerButton      lib.Vec2
+	basicTowerButtonImage lib.Vec2
 
 	// Resources
 	inventorySlotImage *ebiten.Image
@@ -60,12 +65,15 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		grid:                grid,
 		hoveredTileHasTower: false,
 		hoveredTileIsOnPath: false,
+		towerSelected:       0,
+		basicTowerNumber:    1,
 	}
+	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(newEnt.basicTowerNumber)
+	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(newEnt.basicTowerNumber)
 	return newEnt
 }
 
 func (e *EntityInventory) Init(EntitySpawner) {
-
 }
 
 func (e *EntityInventory) Update(EntitySpawner) error {
@@ -131,10 +139,22 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	// Towers
 	geomT1bg := ebiten.GeoM{}
 	geomT1bg.Scale(6, 6)
-	geomT1bg.Translate(float64(16*e.tilePixels-(7*e.tilePixels/4)), float64(12*e.tilePixels+e.tilePixels/4))
+	geomT1bg.Translate(float64(e.basicTowerButton.X), float64(e.basicTowerButton.Y))
 	screen.DrawImage(e.inventorySlotImage, &ebiten.DrawImageOptions{GeoM: geomT1bg})
 	geomT1im := ebiten.GeoM{}
 	geomT1im.Scale(4, 4)
-	geomT1im.Translate(float64(16*e.tilePixels-(6*e.tilePixels/4)), float64(12*e.tilePixels+2*e.tilePixels/4))
+	geomT1im.Translate(float64(e.basicTowerButtonImage.X), float64(e.basicTowerButtonImage.Y))
 	screen.DrawImage(e.basicTowerImage, &ebiten.DrawImageOptions{GeoM: geomT1im})
+}
+
+func (e *EntityInventory) getTowerButtonPosition(buttonNumber int) lib.Vec2 {
+	return lib.NewVec2(float32(16*e.tilePixels-buttonNumber*(7*e.tilePixels/4)), float32(12*e.tilePixels+e.tilePixels/4))
+}
+
+func (e *EntityInventory) getTowerButtonIconPosition(buttonNumber int) lib.Vec2 {
+	return lib.NewVec2(float32(16*e.tilePixels-(buttonNumber-1)*(7*e.tilePixels/4)-(6*e.tilePixels/4)), float32(12*e.tilePixels+e.tilePixels/2))
+}
+
+func isInButton(mouseX int, mouseY int, button lib.Vec2) bool {
+	return mouseX >= int(button.X) && mouseX < int(button.X+96) && mouseY >= int(button.Y) && mouseY < int(button.Y+96)
 }
