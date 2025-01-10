@@ -8,7 +8,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+type TileConfig struct {
+	width  int
+	height int
+	scale  int
+}
+
 type Game struct {
+	tileConfig         TileConfig
 	firstClickHappened bool
 	entities           []entity.Entity
 }
@@ -22,7 +29,7 @@ func NewGame() *Game {
 
 // Init initializes the game.
 func (g *Game) Init() {
-
+	g.tileConfig = TileConfig{16, 12, 64}
 }
 
 // Update is part of the ebiten.Game interface.
@@ -47,7 +54,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 // Layout is part of the ebiten.Game interface.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 320, 240
+	return g.tileConfig.width * g.tileConfig.scale, g.tileConfig.height * g.tileConfig.scale
 }
 
 // AddEntity adds an entity to the game
