@@ -49,6 +49,8 @@ tasks:
     desc: "Builds and packages for an itch.io web player"
     deps: ["build-web"]
     cmds:
+      # the dist build should not ship the iframe
+      - mv "{{.WEB_BUILD_DIR}}main.html" "{{.WEB_BUILD_DIR}}index.html"
       - zip -r {{.DIST_FILE}} {{.WEB_BUILD_DIR}}
 
   dev:
