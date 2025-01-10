@@ -11,7 +11,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -117,17 +116,6 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 		e.enemies[lib.NewVec2I(0, 1)] = append(e.enemies[lib.NewVec2I(0, 1)], enem)
 	}
 
-	// Tower Placement
-	mouseX, mouseY := ebiten.CursorPosition()
-	e.hoveredTile = lib.NewVec2I(mouseX/e.tilePixels, mouseY/e.tilePixels)
-	_, e.hoveredTileHasTower = e.towers[e.hoveredTile]
-	if !e.hoveredTileHasTower {
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
-			e.towers[e.hoveredTile] = tower
-		}
-	}
-
 	// Move Enemies
 	clear(e.newEnemies)
 	for _, cell := range e.enemies {
@@ -202,21 +190,6 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 			}
 		}
 	}
-
-	// Draw Hovered Tile
-	outlineColor := color.RGBA{100, 255, 100, 255}
-	if e.hoveredTileHasTower {
-		outlineColor = color.RGBA{255, 100, 100, 255}
-	}
-	vector.StrokeRect(screen,
-		float32(e.hoveredTile.X*e.tilePixels),
-		float32(e.hoveredTile.Y*e.tilePixels),
-		float32(e.tilePixels),
-		float32(e.tilePixels),
-		3.0,
-		outlineColor,
-		false,
-	)
 
 	// Draw Enemy Path
 	for i := 0; i < len(e.enemyPath)-1; i++ {

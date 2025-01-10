@@ -55,7 +55,7 @@ pppppppppppppp.p
 	mapDef = strings.TrimSpace(mapDef) // remove leading and trailing whitespace
 	g.grid = entity.NewEntityGrid(g.tileConfig.width, g.tileConfig.height, g.tileConfig.scale, mapDef, enemyPath)
 	g.AddEntity(g.grid)
-	g.inventory = entity.NewEntityInventory(g.tileConfig.scale)
+	g.inventory = entity.NewEntityInventory(g.tileConfig.scale, g.grid)
 	g.AddEntity(g.inventory)
 }
 
