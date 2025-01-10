@@ -18,6 +18,9 @@ type Game struct {
 	tileConfig         TileConfig
 	firstClickHappened bool
 	entities           []entity.Entity
+
+	// Entities
+	grid *entity.EntityGrid
 }
 
 // NewGame creates a new Game instance
@@ -30,6 +33,8 @@ func NewGame() *Game {
 // Init initializes the game.
 func (g *Game) Init() {
 	g.tileConfig = TileConfig{16, 12, 64}
+	g.grid = entity.NewEntityGrid(g.tileConfig.width, g.tileConfig.height, g.tileConfig.scale)
+	g.AddEntity(g.grid)
 }
 
 // Update is part of the ebiten.Game interface.
