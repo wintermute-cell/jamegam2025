@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"image/color"
 	"jamegam/pkg/lib"
+	"jamegam/pkg/towers"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -14,6 +15,7 @@ import (
 
 // Ensure EntityGrid implements Entity
 var _ Entity = &EntityGrid{}
+var _ towers.EnemyManager = &EntityGrid{}
 
 type mapTileType int
 
@@ -27,7 +29,8 @@ type EntityGrid struct {
 	yTiles     int
 	tilePixels int
 
-	hoveredTile lib.Vec2I
+	hoveredTile         lib.Vec2I
+	hoveredTileHasTower bool
 
 	// Map & Path
 	mapDef    string
@@ -36,11 +39,16 @@ type EntityGrid struct {
 
 	// Enemies and Towers
 	enemies map[lib.Vec2I][]Entity
-	towers  map[lib.Vec2I]Entity
+	towers  map[lib.Vec2I]towers.Tower
 
 	// Resources
 	platformImage *ebiten.Image
 	floorImage    *ebiten.Image
+}
+
+// GetEnemies implements towers.EnemyManager.
+func (e *EntityGrid) GetEnemies(point lib.Vec2, radius int) []towers.Enemy {
+	panic("unimplemented")
 }
 
 func NewEntityGrid(
@@ -63,7 +71,7 @@ func NewEntityGrid(
 		platformImage: platformImage,
 		floorImage:    floorImage,
 		enemies:       make(map[lib.Vec2I][]Entity),
-		towers:        make(map[lib.Vec2I]Entity),
+		towers:        make(map[lib.Vec2I]towers.Tower),
 	}
 	return newEnt
 }
@@ -94,20 +102,21 @@ func (e *EntityGrid) Init(EntitySpawner) {
 }
 
 func (e *EntityGrid) Update(EntitySpawner) error {
+
+	// Tower Placement
 	mouseX, mouseY := ebiten.CursorPosition()
 	e.hoveredTile = lib.NewVec2I(mouseX/e.tilePixels, mouseY/e.tilePixels)
+	_, e.hoveredTileHasTower = e.towers[e.hoveredTile]
+	if !e.hoveredTileHasTower {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
+			e.towers[e.hoveredTile] = tower
+		}
+	}
 
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		towerImage, _, err := ebitenutil.NewImageFromFile("test_tower.png")
-		lib.Must(err)
-		tower := NewEntityTower(
-			TowerTypeBasic,
-			lib.NewVec2(
-				float32(e.hoveredTile.X*e.tilePixels),
-				float32(e.hoveredTile.Y*e.tilePixels),
-			),
-			towerImage)
-		e.towers[e.hoveredTile] = tower
+	// Update Towers
+	for _, tower := range e.towers {
+		tower.Update(e)
 	}
 
 	return nil
@@ -147,13 +156,17 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	}
 
 	// Draw Hovered Tile
+	outlineColor := color.RGBA{100, 255, 100, 255}
+	if e.hoveredTileHasTower {
+		outlineColor = color.RGBA{255, 100, 100, 255}
+	}
 	vector.StrokeRect(screen,
 		float32(e.hoveredTile.X*e.tilePixels),
 		float32(e.hoveredTile.Y*e.tilePixels),
 		float32(e.tilePixels),
 		float32(e.tilePixels),
 		3.0,
-		color.RGBA{255, 100, 100, 255},
+		outlineColor,
 		false,
 	)
 

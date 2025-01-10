@@ -1,13 +1,14 @@
 package game
 
 import (
+	"jamegam/pkg/enemy"
 	"jamegam/pkg/entity"
 )
 
 type WaveController struct {
 	resources    int64
 	grid         *entity.EntityGrid
-	next_enemies []entity.EntityEnemy
+	next_enemies []enemy.EnemyType
 }
 
 func NewWaveController(starting_resources int64, grid *entity.EntityGrid) *WaveController {
