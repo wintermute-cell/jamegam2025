@@ -27,6 +27,10 @@ func (e *WaveController) generateNextWave() {
 
 }
 
+func (e *WaveController) spawnNextWave() {
+
+}
+
 func (e *WaveController) increaseResources(value int64) {
 	e.resources += value
 }
