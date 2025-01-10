@@ -77,12 +77,22 @@ func (e *EntityInventory) Init(EntitySpawner) {
 }
 
 func (e *EntityInventory) Update(EntitySpawner) error {
-	// Tower Placement
 	mouseX, mouseY := ebiten.CursorPosition()
+
+	// Tower Buttons
+	if isInButton(mouseX, mouseY, e.basicTowerButton) && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if e.towerSelected == e.basicTowerNumber {
+			e.towerSelected = 0
+		} else {
+			e.towerSelected = e.basicTowerNumber
+		}
+	}
+
+	// Tower Placement
 	e.hoveredTile = lib.NewVec2I(mouseX/e.tilePixels, mouseY/e.tilePixels)
 	e.hoveredTileIsOnPath = e.isOnPath(e.hoveredTile)
 	_, e.hoveredTileHasTower = e.grid.towers[e.hoveredTile]
-	if isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
+	if e.towerSelected != 0 && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
 			e.grid.towers[e.hoveredTile] = tower
@@ -103,7 +113,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	if e.hoveredTileHasTower || e.hoveredTileIsOnPath {
 		outlineColor = color.RGBA{255, 100, 100, 255}
 	}
-	if isInBounds(e.hoveredTile) {
+	if e.towerSelected != 0 && isInBounds(e.hoveredTile) {
 		vector.StrokeRect(screen,
 			float32(e.hoveredTile.X*e.tilePixels),
 			float32(e.hoveredTile.Y*e.tilePixels),
@@ -145,6 +155,13 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomT1im.Scale(4, 4)
 	geomT1im.Translate(float64(e.basicTowerButtonImage.X), float64(e.basicTowerButtonImage.Y))
 	screen.DrawImage(e.basicTowerImage, &ebiten.DrawImageOptions{GeoM: geomT1im})
+
+	// Select Tower
+	buttonOutline := color.RGBA{100, 255, 100, 255}
+
+	if e.towerSelected == e.basicTowerNumber {
+		e.highlightButton(e.basicTowerButton, buttonOutline, screen)
+	}
 }
 
 func (e *EntityInventory) getTowerButtonPosition(buttonNumber int) lib.Vec2 {
@@ -157,4 +174,16 @@ func (e *EntityInventory) getTowerButtonIconPosition(buttonNumber int) lib.Vec2 
 
 func isInButton(mouseX int, mouseY int, button lib.Vec2) bool {
 	return mouseX >= int(button.X) && mouseX < int(button.X+96) && mouseY >= int(button.Y) && mouseY < int(button.Y+96)
+}
+
+func (e *EntityInventory) highlightButton(button lib.Vec2, col color.RGBA, screen *ebiten.Image) {
+	vector.StrokeRect(screen,
+		button.X,
+		button.Y,
+		float32(96),
+		float32(96),
+		3.0,
+		col,
+		false,
+	)
 }
