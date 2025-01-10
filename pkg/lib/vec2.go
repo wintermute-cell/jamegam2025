@@ -1,13 +1,23 @@
 package lib
 
 type Vec2 struct {
-	X float64
-	Y float64
+	X float32
+	Y float32
+}
+
+// NewVec2 creates a new Vec2 (float32 vector)
+func NewVec2(x, y float32) Vec2 {
+	return Vec2{x, y}
 }
 
 type Vec2I struct {
 	X int
 	Y int
+}
+
+// NewVec2I creates a new Vec2I (integer vector)
+func NewVec2I(x, y int) Vec2I {
+	return Vec2I{x, y}
 }
 
 // Add returns the sum of two vectors
@@ -21,22 +31,22 @@ func (v Vec2) Sub(v2 Vec2) Vec2 {
 }
 
 // Mul returns the product of a vector and a scalar
-func (v Vec2) Mul(s float64) Vec2 {
+func (v Vec2) Mul(s float32) Vec2 {
 	return Vec2{v.X * s, v.Y * s}
 }
 
 // Div returns the division of a vector and a scalar
-func (v Vec2) Div(s float64) Vec2 {
+func (v Vec2) Div(s float32) Vec2 {
 	return Vec2{v.X / s, v.Y / s}
 }
 
 // Dot returns the dot product of two vectors
-func (v Vec2) Dot(v2 Vec2) float64 {
+func (v Vec2) Dot(v2 Vec2) float32 {
 	return v.X*v2.X + v.Y*v2.Y
 }
 
 // Len returns the length of a vector
-func (v Vec2) Len() float64 {
+func (v Vec2) Len() float32 {
 	return (v.X*v.X + v.Y*v.Y)
 }
 
@@ -50,17 +60,17 @@ func (v Vec2) Normalize() Vec2 {
 }
 
 // Dist returns the distance between two vectors
-func (v Vec2) Dist(v2 Vec2) float64 {
+func (v Vec2) Dist(v2 Vec2) float32 {
 	return v.Sub(v2).Len()
 }
 
 // DistSq returns the squared distance between two vectors
-func (v Vec2) DistSq(v2 Vec2) float64 {
+func (v Vec2) DistSq(v2 Vec2) float32 {
 	return v.Sub(v2).Len()
 }
 
 // Lerp returns the linear interpolation between two vectors
-func (v Vec2) Lerp(v2 Vec2, t float64) Vec2 {
+func (v Vec2) Lerp(v2 Vec2, t float32) Vec2 {
 	return v.Add(v2.Sub(v).Mul(t))
 }
 
@@ -120,7 +130,7 @@ func (v Vec2I) Lerp(v2 Vec2I, t int) Vec2I {
 
 // ToVec2 converts a Vec2I to a Vec2
 func (v Vec2I) ToVec2() Vec2 {
-	return Vec2{float64(v.X), float64(v.Y)}
+	return Vec2{float32(v.X), float32(v.Y)}
 }
 
 // ToVec2I converts a Vec2 to a Vec2I
