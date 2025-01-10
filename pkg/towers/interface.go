@@ -13,5 +13,5 @@ type Tower interface {
 }
 
 type EnemyManager interface {
-	GetEnemies(point lib.Vec2, radius int) []enemy.Enemy
+	GetEnemies(point lib.Vec2, radius float32) []*enemy.Enemy
 }

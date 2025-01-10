@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
+	"jamegam/pkg/spatialhash"
 	"jamegam/pkg/towers"
 	"log"
 	"strings"
@@ -39,9 +40,11 @@ type EntityGrid struct {
 	mapTiles  [][]mapTileType
 
 	// Enemies and Towers
-	enemies    map[lib.Vec2I][]*enemy.Enemy
-	newEnemies map[lib.Vec2I][]*enemy.Enemy // Used for updating of enemy positions
-	towers     map[lib.Vec2I]towers.Tower
+	// enemies    map[lib.Vec2I][]*enemy.Enemy
+	// newEnemies map[lib.Vec2I][]*enemy.Enemy // Used for updating of enemy positions
+	enemies     []*enemy.Enemy
+	spatialHash *spatialhash.SpatialHash
+	towers      map[lib.Vec2I]towers.Tower
 
 	// Resources
 	platformImage *ebiten.Image
@@ -52,8 +55,29 @@ type EntityGrid struct {
 }
 
 // GetEnemies implements towers.EnemyManager.
-func (e *EntityGrid) GetEnemies(point lib.Vec2, radius int) []enemy.Enemy {
-	panic("unimplemented")
+// NOTE: MUST BE CALLED AFTER SPATIAL HASH IS CONSTRUCTED
+func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) []*enemy.Enemy {
+	ret := []*enemy.Enemy{}
+	shBounds := spatialhash.SHBounds{
+		Mx:      int32(point.X),
+		My:      int32(point.Y),
+		HWidth:  int32(radius),
+		HHeight: int32(radius),
+	}
+	hitIdxs := e.spatialHash.InBounds(shBounds)
+	for _, hit := range hitIdxs {
+		idx := hit.ID
+		enemy := e.enemies[idx]
+		lastIdx, nextIdx := enemy.GetPathNodes()
+		last := e.enemyPath[lastIdx].ToVec2().Mul(float32(e.tilePixels))
+		next := e.enemyPath[nextIdx].ToVec2().Mul(float32(e.tilePixels))
+		pos := last.Lerp(next, float32(enemy.GetPathProgress()))
+		if pos.Dist(point) < float32(radius) {
+			ret = append(ret, enemy)
+		}
+	}
+
+	return ret
 }
 
 func NewEntityGrid(
@@ -75,9 +99,10 @@ func NewEntityGrid(
 		enemyPath:     enemyPath,
 		platformImage: platformImage,
 		floorImage:    floorImage,
-		enemies:       make(map[lib.Vec2I][]*enemy.Enemy),
-		newEnemies:    make(map[lib.Vec2I][]*enemy.Enemy),
-		towers:        make(map[lib.Vec2I]towers.Tower),
+		spatialHash:   spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
+		// enemies:       make(map[lib.Vec2I][]*enemy.Enemy),
+		// newEnemies:    make(map[lib.Vec2I][]*enemy.Enemy),
+		towers: make(map[lib.Vec2I]towers.Tower),
 	}
 	return newEnt
 }
@@ -108,47 +133,48 @@ func (e *EntityGrid) Init(EntitySpawner) {
 }
 
 func (e *EntityGrid) Update(EntitySpawner) error {
+	e.spatialHash.Clear()
+
 	dt := lib.Dt()
 	e.REMOVE_enemyspawntimer += dt
 	if e.REMOVE_enemyspawntimer > 5.0 {
 		e.REMOVE_enemyspawntimer = 0
 		enem := enemy.NewEnemy(enemy.EnemyTypeBasic, 0, 1, 0.0)
-		e.enemies[lib.NewVec2I(0, 1)] = append(e.enemies[lib.NewVec2I(0, 1)], enem)
+		e.enemies = append(e.enemies, enem)
 	}
 
 	// Move Enemies
-	clear(e.newEnemies)
-	for _, cell := range e.enemies {
-		for _, enemy := range cell {
-			lastIdx, nextIdx := enemy.GetPathNodes()
-			progress := enemy.GetPathProgress()
-			progress += 1.0 * dt
-			log.Println("Enemy progress", progress)
+	shElements := []*spatialhash.SHElement{}
+	for idx, enemy := range e.enemies {
+		lastIdx, nextIdx := enemy.GetPathNodes()
+		progress := enemy.GetPathProgress()
+		progress += 1.0 * dt
+		enemy.SetPathProgress(progress)
+
+		if progress >= 1.0 {
+			progress = 0
+			if nextIdx == len(e.enemyPath)-1 {
+				log.Println("Enemy reached the end")
+				panic("unimplemented")
+			}
+			enemy.SetPathNodes(lastIdx+1, nextIdx+1)
 			enemy.SetPathProgress(progress)
-
-			if progress >= 0.5 {
-				// move to next cell
-				e.newEnemies[e.enemyPath[nextIdx]] = append(e.newEnemies[e.enemyPath[nextIdx]], enemy)
-			} else {
-				e.newEnemies[e.enemyPath[lastIdx]] = append(e.newEnemies[e.enemyPath[lastIdx]], enemy)
-			}
-
-			if progress >= 1.0 {
-				progress = 0
-				if nextIdx == len(e.enemyPath)-1 {
-					log.Println("Enemy reached the end")
-					panic("unimplemented")
-				}
-				enemy.SetPathNodes(lastIdx+1, nextIdx+1)
-				enemy.SetPathProgress(progress)
-			}
+			enemy.SetNumPassedNodes(enemy.GetNumPassedNodes() + 1.0)
 		}
+
+		shElements = append(shElements, &spatialhash.SHElement{
+			ID: int32(idx),
+			Bounds: spatialhash.SHBounds{
+				Mx:      int32(e.enemyPath[nextIdx].X*e.tilePixels + (e.tilePixels / 2)),
+				My:      int32(e.enemyPath[nextIdx].Y*e.tilePixels + (e.tilePixels / 2)),
+				HWidth:  int32(e.tilePixels / 2),
+				HHeight: int32(e.tilePixels / 2),
+			},
+		})
+
 	}
-	// e.enemies = e.newEnemies
-	clear(e.enemies)
-	for k, v := range e.newEnemies {
-		e.enemies[k] = v
-	}
+
+	e.spatialHash.Construct(shElements)
 
 	// Update Towers
 	for _, tower := range e.towers {
@@ -204,24 +230,32 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	}
 
 	// Draw Enemies
-	for _, cell := range e.enemies {
-		for _, enem := range cell {
-			progress := enem.GetPathProgress()
-			lastIdx, nextIdx := enem.GetPathNodes()
-			last := e.enemyPath[lastIdx].ToVec2()
-			next := e.enemyPath[nextIdx].ToVec2()
-			pos := last.Lerp(next, float32(progress))
+	for _, enem := range e.enemies {
+		progress := enem.GetPathProgress()
+		lastIdx, nextIdx := enem.GetPathNodes()
+		last := e.enemyPath[lastIdx].ToVec2()
+		next := e.enemyPath[nextIdx].ToVec2()
+		pos := last.Lerp(next, float32(progress))
 
-			geom := ebiten.GeoM{}
-			geom.Scale(4, 4)
-			geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
-			screen.DrawImage(enemy.SpriteEnemyBasic, &ebiten.DrawImageOptions{
-				GeoM: geom,
-			})
+		geom := ebiten.GeoM{}
+		geom.Scale(4, 4)
+		geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
+		screen.DrawImage(enemy.SpriteEnemyBasic, &ebiten.DrawImageOptions{
+			GeoM: geom,
+		})
 
-			geom.Reset()
-			geom.Scale(4, 4)
-		}
+		geom.Reset()
+		geom.Scale(4, 4)
+
+		// for debugging, draw line from enemy to the node that contains the enemy
+		// vector.StrokeLine(screen,
+		// 	float32(pos.X*float32(e.tilePixels)+float32(e.tilePixels)/2),
+		// 	float32(pos.Y*float32(e.tilePixels)+float32(e.tilePixels)/2),
+		// 	float32(cellKey.X*e.tilePixels+e.tilePixels/2),
+		// 	float32(cellKey.Y*e.tilePixels+e.tilePixels/2),
+		// 	1.0,
+		// 	color.RGBA{0, 0, 255, 255},
+		// 	false)
 	}
 
 	// Draw Towers

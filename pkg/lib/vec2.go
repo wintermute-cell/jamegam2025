@@ -1,5 +1,7 @@
 package lib
 
+import "math"
+
 type Vec2 struct {
 	X float32
 	Y float32
@@ -47,7 +49,7 @@ func (v Vec2) Dot(v2 Vec2) float32 {
 
 // Len returns the length of a vector
 func (v Vec2) Len() float32 {
-	return (v.X*v.X + v.Y*v.Y)
+	return float32(math.Sqrt(float64(v.X*v.X + v.Y*v.Y)))
 }
 
 // Normalize returns the normalized vector
@@ -61,11 +63,6 @@ func (v Vec2) Normalize() Vec2 {
 
 // Dist returns the distance between two vectors
 func (v Vec2) Dist(v2 Vec2) float32 {
-	return v.Sub(v2).Len()
-}
-
-// DistSq returns the squared distance between two vectors
-func (v Vec2) DistSq(v2 Vec2) float32 {
 	return v.Sub(v2).Len()
 }
 
@@ -101,7 +98,7 @@ func (v Vec2I) Dot(v2 Vec2I) int {
 
 // Len returns the length of a vector
 func (v Vec2I) Len() int {
-	return (v.X*v.X + v.Y*v.Y)
+	return int(math.Sqrt(float64(v.X*v.X + v.Y*v.Y)))
 }
 
 // Normalize returns the normalized vector
@@ -115,11 +112,6 @@ func (v Vec2I) Normalize() Vec2I {
 
 // Dist returns the distance between two vectors
 func (v Vec2I) Dist(v2 Vec2I) int {
-	return v.Sub(v2).Len()
-}
-
-// DistSq returns the squared distance between two vectors
-func (v Vec2I) DistSq(v2 Vec2I) int {
 	return v.Sub(v2).Len()
 }
 

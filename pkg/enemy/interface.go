@@ -14,6 +14,8 @@ type Enemy struct {
 	pathNodeNext int
 	pathProgress float64
 
+	numPassedNodes float64 // The number of path nodes already passed, can be combined with pathProgress to get the exact total path progress
+
 	currentHealth int
 	currentSpeed  float32
 }
@@ -74,4 +76,12 @@ func (e *Enemy) GetSpeed() float32 {
 
 func (e *Enemy) SetSpeed(speed float32) {
 	e.currentSpeed = speed
+}
+
+func (e *Enemy) GetNumPassedNodes() float64 {
+	return e.numPassedNodes
+}
+
+func (e *Enemy) SetNumPassedNodes(numPassedNodes float64) {
+	e.numPassedNodes = numPassedNodes
 }
