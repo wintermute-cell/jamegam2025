@@ -22,7 +22,8 @@ type Game struct {
 	entities           []entity.Entity
 
 	// Entities
-	grid *entity.EntityGrid
+	grid      *entity.EntityGrid
+	inventory *entity.EntityInventory
 }
 
 // NewGame creates a new Game instance
@@ -54,6 +55,8 @@ pppppppppppppp.p
 	mapDef = strings.TrimSpace(mapDef) // remove leading and trailing whitespace
 	g.grid = entity.NewEntityGrid(g.tileConfig.width, g.tileConfig.height, g.tileConfig.scale, mapDef, enemyPath)
 	g.AddEntity(g.grid)
+	g.inventory = entity.NewEntityInventory(g.tileConfig.scale)
+	g.AddEntity(g.inventory)
 }
 
 // Update is part of the ebiten.Game interface.
@@ -78,7 +81,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 // Layout is part of the ebiten.Game interface.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return g.tileConfig.width * g.tileConfig.scale, g.tileConfig.height * g.tileConfig.scale
+	return (g.tileConfig.width) * g.tileConfig.scale, (g.tileConfig.height + 2) * g.tileConfig.scale
 }
 
 // AddEntity adds an entity to the game
