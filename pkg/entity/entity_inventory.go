@@ -11,8 +11,12 @@ import (
 // Ensure EntityInventory implements Entity
 var _ Entity = &EntityInventory{}
 
+// TODO: Replace with real EntityItem later
+type EntityItemPlaceholder struct {
+}
+
 type EntityInventory struct {
-	//inventory EntityItem
+	inventory [4]EntityItemPlaceholder
 
 	tilePixels int
 
@@ -26,6 +30,7 @@ func NewEntityInventory(tilePixels int) *EntityInventory {
 	newEnt := &EntityInventory{
 		tilePixels:         tilePixels,
 		inventorySlotImage: inventorySlotImage,
+		inventory:          [4]EntityItemPlaceholder{},
 	}
 	return newEnt
 }
@@ -55,4 +60,10 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomBack.Translate(10, float64(12*e.tilePixels)+10)
 	screen.DrawImage(background, &ebiten.DrawImageOptions{GeoM: geomBack})
 
+	for index, _ := range e.inventory {
+		geomItem := ebiten.GeoM{}
+		geomItem.Scale(6, 6)
+		geomItem.Translate(float64(index*e.tilePixels+index*e.tilePixels/2+e.tilePixels/4), float64(12*e.tilePixels+e.tilePixels/4))
+		screen.DrawImage(e.inventorySlotImage, &ebiten.DrawImageOptions{GeoM: geomItem})
+	}
 }

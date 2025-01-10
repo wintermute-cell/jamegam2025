@@ -7,7 +7,7 @@ import (
 )
 
 func configure() {
-	ebiten.SetWindowSize(1024, 768)
+	ebiten.SetWindowSize(1024, 896)
 	ebiten.SetWindowTitle("Bye, World!")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeDisabled)
 }
