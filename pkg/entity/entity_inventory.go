@@ -119,6 +119,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			}
 		} else {
 			e.peace = true
+			e.waveController.IncreaseResources()
 		}
 	}
 
