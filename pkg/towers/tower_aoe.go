@@ -36,7 +36,7 @@ func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 	}
 
 	// TODO: if there is an ememy in range...
-	if t.ShouldFire(lib.Dt()) && furthestEnemy != nil {
+	if furthestEnemy != nil && t.ShouldFire(lib.Dt()) {
 		lastIdx, nextIdx := furthestEnemy.GetPathNodes()
 		last := path[lastIdx].ToVec2().Mul(64)
 		next := path[nextIdx].ToVec2().Mul(64)

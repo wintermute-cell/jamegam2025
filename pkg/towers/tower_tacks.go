@@ -36,7 +36,7 @@ func (t *TowerTacks) Update(em EnemyManager, pm ProjectileManager) error {
 	}
 
 	// TODO: if there is an ememy in range...
-	if t.ShouldFire(lib.Dt()) && furthestEnemy != nil {
+	if furthestEnemy != nil && t.ShouldFire(lib.Dt()) {
 		// Spawn projectiles in a circle around the tower
 		for i := 0; i < 8; i++ {
 			angle := float32(i) * 45

@@ -11,6 +11,7 @@ type Tower interface {
 	Update(EnemyManager, ProjectileManager) error
 	Draw(screen *ebiten.Image)
 	Price() int64
+	Radius() float32
 }
 
 type EnemyManager interface {

@@ -30,6 +30,9 @@ type Enemy struct {
 	currentSpeed    float32
 	currentSpeedMod float32
 	speedModEnd     time.Time
+
+	wander         float32 // the sideways wander from the path line
+	WanderVelocity float32
 }
 
 func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress float64) *Enemy {
@@ -70,6 +73,14 @@ func (e *Enemy) GetSprite() *ebiten.Image {
 
 	log.Fatal("Unknown enemy type")
 	return nil
+}
+
+func (e *Enemy) GetWander() float32 {
+	return e.wander
+}
+
+func (e *Enemy) SetWander(wander float32) {
+	e.wander = wander
 }
 
 func (e *Enemy) SetDestroyFunc(f func()) {

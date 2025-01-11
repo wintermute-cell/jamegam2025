@@ -46,8 +46,8 @@ type EntityInventory struct {
 	currentCurrency int64
 
 	// Tower Buttons
-	towerSelected    towers.TowerType
-	basicTowerButton lib.Vec2I
+	basicTowerButton  lib.Vec2I
+	blueprintSelected towers.TowerType
 
 	// Resources
 	inventorySlotImage *ebiten.Image
@@ -93,7 +93,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		grid:                 grid,
 		hoveredTileHasTower:  false,
 		hoveredTileIsOnPath:  false,
-		towerSelected:        0,
+		blueprintSelected:    0,
 		currentMana:          0,
 		maximumMana:          500,
 		textFace:             &text.GoTextFace{Source: textFaceSource, Size: 24},
@@ -166,10 +166,10 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 
 	// Tower Buttons
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
-		if e.towerSelected == towers.TowerTypeBasic {
-			e.towerSelected = towers.TowerTypeNone
+		if e.blueprintSelected == towers.TowerTypeBasic {
+			e.blueprintSelected = towers.TowerTypeNone
 		} else {
-			e.towerSelected = towers.TowerTypeBasic
+			e.blueprintSelected = towers.TowerTypeBasic
 		}
 	}
 
@@ -177,10 +177,10 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	e.hoveredTile = lib.NewVec2I(mouseX/e.tilePixels, mouseY/e.tilePixels)
 	e.hoveredTileIsOnPath = e.isOnPath(e.hoveredTile)
 	_, e.hoveredTileHasTower = e.grid.towers[e.hoveredTile]
-	if e.towerSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
+	if e.blueprintSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			var tower towers.Tower = nil
-			switch e.towerSelected {
+			switch e.blueprintSelected {
 			case towers.TowerTypeBasic:
 				// tower = towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
 				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
@@ -196,15 +196,26 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				if e.currentCurrency >= tower.Price() {
 					e.currentCurrency -= tower.Price()
 					e.grid.towers[e.hoveredTile] = tower
+					e.grid.selectedTower = e.hoveredTile
 				} else {
 					e.grid.ShowMessage(fmt.Sprintf("Not enough currency to place tower. Need %d", tower.Price()))
 				}
 			}
 		}
-	} else if e.hoveredTileHasTower && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
-		e.grid.ShowMessage("Can't place tower here, there is already a tower.")
-	} else if e.hoveredTileIsOnPath && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
+	} else if e.blueprintSelected != towers.TowerTypeNone && e.hoveredTileIsOnPath && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
 		e.grid.ShowMessage("Can't place tower on the path.")
+	} else if isInBounds(e.hoveredTile) && e.hoveredTileHasTower {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			e.blueprintSelected = towers.TowerTypeNone
+			e.grid.selectedTower = e.hoveredTile
+		}
+	}
+
+	// Unselect Tower
+	if e.blueprintSelected == towers.TowerTypeNone && isInBounds(e.hoveredTile) && !e.hoveredTileHasTower {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			e.grid.selectedTower = lib.NewVec2I(-1, -1)
+		}
 	}
 
 	return nil
@@ -221,7 +232,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	if e.hoveredTileHasTower || e.hoveredTileIsOnPath {
 		outlineColor = color.RGBA{255, 100, 100, 255}
 	}
-	if e.towerSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) {
+	if e.blueprintSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) {
 		vector.StrokeRect(screen,
 			float32(e.hoveredTile.X*e.tilePixels),
 			float32(e.hoveredTile.Y*e.tilePixels),
@@ -294,7 +305,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	// Select Tower
 	buttonOutline := color.RGBA{100, 255, 100, 255}
 
-	if e.towerSelected == towers.TowerTypeBasic {
+	if e.blueprintSelected == towers.TowerTypeBasic {
 		e.highlightButton(e.getButtonPosition(e.basicTowerButton), buttonOutline, screen)
 	}
 

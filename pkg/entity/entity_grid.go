@@ -10,6 +10,7 @@ import (
 	"jamegam/pkg/spatialhash"
 	"jamegam/pkg/towers"
 	"log"
+	"math/rand"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -52,10 +53,11 @@ type EntityGrid struct {
 
 	// Enemies and Towers
 	// enemies     []*enemy.Enemy // TODO: maybe use a free list here too
-	enemies     *lib.FreeList[*enemy.Enemy]
-	spatialHash *spatialhash.SpatialHash
-	towers      map[lib.Vec2I]towers.Tower
-	droppedMana int64
+	enemies       *lib.FreeList[*enemy.Enemy]
+	spatialHash   *spatialhash.SpatialHash
+	towers        map[lib.Vec2I]towers.Tower
+	selectedTower lib.Vec2I // cant have pointers to towers because of map, so only cell
+	droppedMana   int64
 
 	// Projectiles
 	projectiles *lib.FreeList[towers.Projectile]
@@ -292,9 +294,16 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 		next := e.enemyPath[nextIdx].ToVec2()
 		pos := last.Lerp(next, float32(progress))
 
+		newWander := enem.GetWander() + float32(lib.Dt())*enem.WanderVelocity
+		enem.WanderVelocity = enem.WanderVelocity*0.95 + (rand.Float32()-0.5)*200*float32(lib.Dt())
+		newWander = max(-10, min(10, newWander))
+		enem.SetWander(newWander)
+		wanderDirection := next.Sub(last).Normalize().Rotate(90).Mul(enem.GetWander())
+
 		geom := ebiten.GeoM{}
 		geom.Scale(4, 4)
 		geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
+		geom.Translate(float64(wanderDirection.X), float64(wanderDirection.Y))
 		screen.DrawImage(enem.GetSprite(), &ebiten.DrawImageOptions{
 			GeoM: geom,
 		})
@@ -312,6 +321,19 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	// Draw Towers
 	for _, tower := range e.towers {
 		tower.Draw(screen)
+	}
+	if e.selectedTower.X >= 0 && e.selectedTower.Y >= 0 {
+		selectedTower := e.towers[e.selectedTower]
+		if selectedTower != nil {
+			radius := selectedTower.Radius()
+			vector.DrawFilledCircle(screen,
+				float32(e.selectedTower.X*64+32),
+				float32(e.selectedTower.Y*64+32),
+				radius,
+				color.RGBA{0, 0, 0, 80},
+				false)
+			selectedTower.Draw(screen) // draw that one again on top
+		}
 	}
 
 	// Draw Projectiles
