@@ -180,12 +180,14 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	e.currentMana += e.grid.droppedMana
 	e.grid.droppedMana = 0
 
-	// Start Wave
+	// Start Wave Button
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.playButton)) {
+		e.StartWave()
+	}
+
+	// Start Wave Hotkey
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		e.currentWave = append(e.currentWave, e.waveController.GenerateNextWave()...)
-		e.peace = false
-		e.waveCounter++
-		e.grid.ShowMessage(fmt.Sprintf("Wave %d started! (Strength: %d)", e.waveCounter, e.waveController.GetResources()))
+		e.StartWave()
 	}
 
 	// Toggle Turret Range Indicators
@@ -480,4 +482,11 @@ func (e *EntityInventory) selectTowerType(towerType towers.TowerType) {
 	} else {
 		e.blueprintSelected = towerType
 	}
+}
+
+func (e *EntityInventory) StartWave() {
+	e.currentWave = append(e.currentWave, e.waveController.GenerateNextWave()...)
+	e.peace = false
+	e.waveCounter++
+	e.grid.ShowMessage(fmt.Sprintf("Wave %d started! (Strength: %d)", e.waveCounter, e.waveController.GetResources()))
 }
