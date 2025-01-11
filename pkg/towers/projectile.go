@@ -58,10 +58,10 @@ func (p *ProjectileBasic) Update(em EnemyManager, pm ProjectileManager) {
 	for _, e := range enemies {
 		newHealth := e.GetHealth() - p.damage
 		e.SetHealth(newHealth)
-		if newHealth <= 0 {
-			pm.RemoveProjectile(p.SelfIdx)
-			return
-		}
+		pm.RemoveProjectile(p.SelfIdx)
+		return
+		// if newHealth <= 0 {
+		// }
 	}
 
 }

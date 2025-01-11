@@ -255,7 +255,6 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	}
 
 	// Draw Enemies
-	// for _, enem := range e.enemies {
 	e.enemies.FuncAll(func(_ int, enem *enemy.Enemy) {
 		progress := enem.GetPathProgress()
 		lastIdx, nextIdx := enem.GetPathNodes()

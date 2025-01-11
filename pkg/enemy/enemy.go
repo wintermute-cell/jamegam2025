@@ -45,7 +45,7 @@ func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress 
 		ret.currentHealth = 1
 		ret.currentSpeed = 3
 	case EnemyTypeTank:
-		ret.currentHealth = 4
+		ret.currentHealth = 10
 		ret.currentSpeed = 0.8
 	default:
 		panic("Unknown enemy type")
