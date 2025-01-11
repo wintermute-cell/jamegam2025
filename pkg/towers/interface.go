@@ -20,3 +20,10 @@ type ProjectileManager interface {
 	AddProjectile(projectile Projectile) int
 	RemoveProjectile(idx int)
 }
+
+type TowerType int
+
+const (
+	TowerTypeNone TowerType = iota
+	TowerTypeBasic
+)

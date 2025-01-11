@@ -39,9 +39,11 @@ type EntityInventory struct {
 	currentMana int64
 	maximumMana int64
 
+	// Currency
+	currentCurrency int64
+
 	// Tower Buttons
-	towerSelected         int
-	basicTowerNumber      int
+	towerSelected         towers.TowerType
 	basicTowerButton      lib.Vec2
 	basicTowerButtonImage lib.Vec2
 
@@ -53,7 +55,7 @@ type EntityInventory struct {
 }
 
 func isInBounds(vect lib.Vec2I) bool {
-	return vect.Y < 12
+	return vect.Y < 12 && vect.X < 16
 }
 
 func (e *EntityInventory) isOnPath(vect lib.Vec2I) bool {
@@ -87,16 +89,16 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		hoveredTileHasTower: false,
 		hoveredTileIsOnPath: false,
 		towerSelected:       0,
-		basicTowerNumber:    1,
 		currentMana:         0,
 		maximumMana:         100,
 		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
 		waveController:      wavecontroller.NewWaveController(100),
 		peace:               true,
 		enemySpawnTimer:     0.0,
+		currentCurrency:     10_000, // TODO: remove this
 	}
-	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(newEnt.basicTowerNumber)
-	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(newEnt.basicTowerNumber)
+	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(int(towers.TowerTypeBasic))
+	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(int(towers.TowerTypeBasic))
 	return newEnt
 }
 
@@ -128,16 +130,16 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 
 	// Hat Button
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
-		e.currentWave = e.waveController.GenerateNextWave()
+		e.currentWave = append(e.currentWave, e.waveController.GenerateNextWave()...)
 		e.peace = false
 	}
 
 	// Tower Buttons
 	if isInButton(mouseX, mouseY, e.basicTowerButton) && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if e.towerSelected == e.basicTowerNumber {
-			e.towerSelected = 0
+		if e.towerSelected == towers.TowerTypeBasic {
+			e.towerSelected = towers.TowerTypeNone
 		} else {
-			e.towerSelected = e.basicTowerNumber
+			e.towerSelected = towers.TowerTypeBasic
 		}
 	}
 
@@ -145,10 +147,14 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	e.hoveredTile = lib.NewVec2I(mouseX/e.tilePixels, mouseY/e.tilePixels)
 	e.hoveredTileIsOnPath = e.isOnPath(e.hoveredTile)
 	_, e.hoveredTileHasTower = e.grid.towers[e.hoveredTile]
-	if e.towerSelected != 0 && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
+	if e.towerSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
-			e.grid.towers[e.hoveredTile] = tower
+			switch e.towerSelected {
+			case towers.TowerTypeBasic:
+				tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
+				e.grid.towers[e.hoveredTile] = tower
+				//case towers.TowerType...:
+			}
 		}
 	}
 
@@ -166,7 +172,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	if e.hoveredTileHasTower || e.hoveredTileIsOnPath {
 		outlineColor = color.RGBA{255, 100, 100, 255}
 	}
-	if e.towerSelected != 0 && isInBounds(e.hoveredTile) {
+	if e.towerSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) {
 		vector.StrokeRect(screen,
 			float32(e.hoveredTile.X*e.tilePixels),
 			float32(e.hoveredTile.Y*e.tilePixels),
@@ -213,6 +219,12 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 
 	text.Draw(screen, fmt.Sprintf("%03d%%", manaPercentage), e.textFace, hatTextOptions)
 
+	geom := ebiten.GeoM{}
+	geom.Translate(10, 10)
+	text.Draw(screen, fmt.Sprintf("Currency: %d", e.currentCurrency), e.textFace, &text.DrawOptions{
+		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geom},
+	})
+
 	// Items
 	for index, _ := range e.inventory {
 		geomItem := ebiten.GeoM{}
@@ -234,7 +246,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	// Select Tower
 	buttonOutline := color.RGBA{100, 255, 100, 255}
 
-	if e.towerSelected == e.basicTowerNumber {
+	if e.towerSelected == towers.TowerTypeBasic {
 		e.highlightButton(e.basicTowerButton, buttonOutline, screen)
 	}
 }

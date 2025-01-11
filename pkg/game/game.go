@@ -81,7 +81,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	ebitenutil.DebugPrint(fakeScreen, fmt.Sprintf("dt: %f", lib.Dt()))
 	geom := ebiten.GeoM{}
-	geom.Translate(20, 20)
+	// geom.Translate(20, 20)
 	screen.DrawImage(fakeScreen, &ebiten.DrawImageOptions{
 		GeoM: geom,
 	})

@@ -10,6 +10,7 @@ package lib
 type freeListElement[T any] struct {
 	element     T
 	nextFreeIdx int
+	removed     bool
 }
 
 // FreeList is a data structure that allows for constant-time removals and
@@ -37,14 +38,14 @@ func (fl *FreeList[T]) Clear() {
 func (fl *FreeList[T]) Insert(element T) int {
 	if fl.firstFreeIdx == -1 {
 		// -1 means there are no holes in the array
-		elem := freeListElement[T]{element: element}
+		elem := freeListElement[T]{element: element, removed: false}
 		fl.data = append(fl.data, elem)
 		return int(len(fl.data)) - 1
 	} else {
 		// reuse a hole in this case
 		idx := fl.firstFreeIdx
 		fl.firstFreeIdx = fl.data[idx].nextFreeIdx
-		fl.data[idx] = freeListElement[T]{element: element}
+		fl.data[idx] = freeListElement[T]{element: element, removed: false}
 		return idx
 	}
 }
@@ -52,6 +53,7 @@ func (fl *FreeList[T]) Insert(element T) int {
 // Remove removes the element at the given index from the FreeList.
 func (fl *FreeList[T]) Remove(idx int) {
 	fl.data[idx].nextFreeIdx = fl.firstFreeIdx
+	fl.data[idx].removed = true
 	fl.firstFreeIdx = idx
 }
 
@@ -93,14 +95,14 @@ func (fl *FreeList[T]) FuncAll(f func(idx int, elem T)) {
 		return
 	}
 
-	// build a map of free indices
-	freeIndices := make(map[int]bool)
-	for idx := fl.firstFreeIdx; idx != -1 && idx != fl.data[idx].nextFreeIdx; idx = fl.data[idx].nextFreeIdx {
-		freeIndices[idx] = true
-	}
+	// // build a map of free indices
+	// freeIndices := make(map[int]bool)
+	// for idx := fl.firstFreeIdx; idx != -1 && idx != fl.data[idx].nextFreeIdx; idx = fl.data[idx].nextFreeIdx {
+	// 	freeIndices[idx] = true
+	// }
 
 	for i := range fl.data {
-		if !freeIndices[i] {
+		if !fl.data[i].removed {
 			f(i, fl.data[i].element)
 		}
 	}
