@@ -52,15 +52,25 @@ type EntityInventory struct {
 	aoeTowerButton    lib.Vec2I
 	blueprintSelected towers.TowerType
 
+	// Menu Buttons
+	playButton     lib.Vec2I
+	removeButton   lib.Vec2I
+	damageButton   lib.Vec2I
+	firerateButton lib.Vec2I
+
 	// Resources
-	inventorySlotImage *ebiten.Image
-	basicTowerImage    *ebiten.Image
-	tackTowerImage     *ebiten.Image
-	iceTowerImage      *ebiten.Image
-	aoeTowerImage      *ebiten.Image
-	hatImage           *ebiten.Image
-	textFace           *text.GoTextFace
-	inventoryBarImage  *ebiten.Image
+	inventorySlotImage  *ebiten.Image
+	basicTowerImage     *ebiten.Image
+	tackTowerImage      *ebiten.Image
+	iceTowerImage       *ebiten.Image
+	aoeTowerImage       *ebiten.Image
+	hatImage            *ebiten.Image
+	textFace            *text.GoTextFace
+	playButtonImage     *ebiten.Image
+	removeButtonImage   *ebiten.Image
+	damageButtonImage   *ebiten.Image
+	firerateButtonImage *ebiten.Image
+	inventoryBarImage   *ebiten.Image
 }
 
 func isInBounds(vect lib.Vec2I) bool {
@@ -94,6 +104,15 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	textFaceSource, err := text.NewGoTextFaceSource(arialFile)
 	lib.Must(err)
 	inventoryBarImage, _, err := ebitenutil.NewImageFromFile("menu_bar_1024x246.png")
+	lib.Must(err)
+	playButtonImage, _, err := ebitenutil.NewImageFromFile("test_playbutton.png")
+	lib.Must(err)
+	removeButtonImage, _, err := ebitenutil.NewImageFromFile("test_removebutton.png")
+	lib.Must(err)
+	damageButtonImage, _, err := ebitenutil.NewImageFromFile("test_damagebutton.png")
+	lib.Must(err)
+	firerateButtonImage, _, err := ebitenutil.NewImageFromFile("test_ammobutton.png")
+	lib.Must(err)
 
 	newEnt := &EntityInventory{
 		tilePixels:           tilePixels,
@@ -119,11 +138,19 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		waveCounter:          0,
 		turretRangeIndicator: true,
 		inventoryBarImage:    inventoryBarImage,
+		playButtonImage:      playButtonImage,
+		removeButtonImage:    removeButtonImage,
+		damageButtonImage:    damageButtonImage,
+		firerateButtonImage:  firerateButtonImage,
+		basicTowerButton:     lib.NewVec2I(2, 1),
+		tackTowerButton:      lib.NewVec2I(3, 1),
+		iceTowerButton:       lib.NewVec2I(4, 1),
+		aoeTowerButton:       lib.NewVec2I(5, 1),
+		playButton:           lib.NewVec2I(0, 0),
+		removeButton:         lib.NewVec2I(1, 0),
+		damageButton:         lib.NewVec2I(2, 0),
+		firerateButton:       lib.NewVec2I(3, 0),
 	}
-	newEnt.basicTowerButton = lib.NewVec2I(2, 1)
-	newEnt.tackTowerButton = lib.NewVec2I(3, 1)
-	newEnt.iceTowerButton = lib.NewVec2I(4, 1)
-	newEnt.aoeTowerButton = lib.NewVec2I(5, 1)
 	return newEnt
 }
 
@@ -366,7 +393,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 		e.highlightButton(e.getButtonPosition(e.aoeTowerButton), buttonOutline, screen)
 	}
 
-	// Buttons
+	// Menu Buttons
 	for i := 0; i < 4; i++ {
 		buttonPos := e.getButtonPosition(lib.NewVec2I(i, 0))
 		buttonImgOptions := &ebiten.DrawImageOptions{}
@@ -375,6 +402,31 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 		screen.DrawImage(e.inventorySlotImage, buttonImgOptions)
 	}
 
+	// Menu Button Icons
+	// Play Button
+	playButtonImagePos := e.getButtonTowerIconPosition(e.playButton)
+	geomUI1 := ebiten.GeoM{}
+	geomUI1.Scale(4, 4)
+	geomUI1.Translate(float64(playButtonImagePos.X), float64(playButtonImagePos.Y))
+	screen.DrawImage(e.playButtonImage, &ebiten.DrawImageOptions{GeoM: geomUI1})
+	// Remove Button
+	removeButtonImagePos := e.getButtonTowerIconPosition(e.removeButton)
+	geomUI2 := ebiten.GeoM{}
+	geomUI2.Scale(4, 4)
+	geomUI2.Translate(float64(removeButtonImagePos.X), float64(removeButtonImagePos.Y))
+	screen.DrawImage(e.removeButtonImage, &ebiten.DrawImageOptions{GeoM: geomUI2})
+	// Damage Upgrade Button
+	damageButtonImagePos := e.getButtonTowerIconPosition(e.damageButton)
+	geomUI3 := ebiten.GeoM{}
+	geomUI3.Scale(4, 4)
+	geomUI3.Translate(float64(damageButtonImagePos.X), float64(damageButtonImagePos.Y))
+	screen.DrawImage(e.damageButtonImage, &ebiten.DrawImageOptions{GeoM: geomUI3})
+	// Fire Rate Upgrade Button
+	firerateButtonImagePos := e.getButtonTowerIconPosition(e.firerateButton)
+	geomUI4 := ebiten.GeoM{}
+	geomUI4.Scale(4, 4)
+	geomUI4.Translate(float64(firerateButtonImagePos.X), float64(firerateButtonImagePos.Y))
+	screen.DrawImage(e.firerateButtonImage, &ebiten.DrawImageOptions{GeoM: geomUI4})
 }
 
 func isInButton(mouseX int, mouseY int, button lib.Vec2I) bool {
