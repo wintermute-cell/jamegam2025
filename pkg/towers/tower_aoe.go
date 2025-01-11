@@ -6,24 +6,24 @@ import (
 	"jamegam/pkg/lib"
 )
 
-var _ Tower = &TowerBasic{}
+var _ Tower = &TowerAoe{}
 
-type TowerBasic struct {
+type TowerAoe struct {
 	*Towercore
 }
 
-func NewTowerBasic(position lib.Vec2I) *TowerBasic {
-	return &TowerBasic{
-		Towercore: NewTowercore(1.0, 200.0, spriteTowerBasic, position),
+func NewTowerAoe(position lib.Vec2I) *TowerAoe {
+	return &TowerAoe{
+		Towercore: NewTowercore(2.0, 195.0, spriteTowerAoe, position),
 	}
 }
 
-func (t *TowerBasic) Price() int64 {
+func (t *TowerAoe) Price() int64 {
 	return 100
 }
 
 // Update implements Tower.
-func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
+func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 	enemies, path := em.GetEnemies(t.position.ToVec2(), t.radius)
 	var furthestProgress float64 = -1
 	var furthestEnemy *enemy.Enemy
@@ -42,12 +42,13 @@ func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
 		next := path[nextIdx].ToVec2().Mul(64)
 		pos := last.Lerp(next, float32(furthestEnemy.GetPathProgress()))
 		dirToEnemy := pos.Sub(t.position.ToVec2()).Normalize()
-		prj := NewProjectileBasic(
+		prj := NewProjectileExplosive(
 			dirToEnemy,
 			t.position.ToVec2().Add(lib.NewVec2(32, 32)),
-			800.0,
+			550.0,
 			12.0,
-			1,
+			0.45,
+			50,
 		)
 		idx := pm.AddProjectile(prj)
 		prj.SelfIdx = idx

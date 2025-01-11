@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	spriteTowerBasic   *ebiten.Image
-	spriteTowerSlowing *ebiten.Image
-	spriteTowerAoe     *ebiten.Image
+	spriteTowerBasic *ebiten.Image
+	spriteTowerTacks *ebiten.Image
+	spriteTowerIce   *ebiten.Image
+	spriteTowerAoe   *ebiten.Image
 )
 
 func init() {
@@ -19,9 +20,12 @@ func init() {
 	spriteTowerBasic, _, err = ebitenutil.NewImageFromFile("test_tower.png")
 	lib.Must(err)
 
-	spriteTowerSlowing, _, err = ebitenutil.NewImageFromFile("test_tower.png")
+	spriteTowerTacks, _, err = ebitenutil.NewImageFromFile("test_towertacks.png")
 	lib.Must(err)
 
-	spriteTowerAoe, _, err = ebitenutil.NewImageFromFile("test_tower.png")
+	spriteTowerIce, _, err = ebitenutil.NewImageFromFile("test_towerice.png")
+	lib.Must(err)
+
+	spriteTowerAoe, _, err = ebitenutil.NewImageFromFile("test_toweraoe.png")
 	lib.Must(err)
 }

@@ -181,8 +181,15 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			var tower towers.Tower = nil
 			switch e.towerSelected {
 			case towers.TowerTypeBasic:
-				tower = towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
-				//case towers.TowerType...:
+				// tower = towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
+				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
+			case towers.TowerTypeTacks:
+				tower = towers.NewTowerTacks(e.hoveredTile.Mul(e.tilePixels))
+			case towers.TowerTypeIce:
+				tower = towers.NewTowerIce(e.hoveredTile.Mul(e.tilePixels))
+			case towers.TowerTypeAoe:
+				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
+				// case towers.TowerType...:
 			}
 			if tower != nil {
 				if e.currentCurrency >= tower.Price() {

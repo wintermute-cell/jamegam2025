@@ -3,6 +3,7 @@ package enemy
 import (
 	"jamegam/pkg/audio"
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -25,16 +26,19 @@ type Enemy struct {
 
 	numPassedNodes float64 // The number of path nodes already passed, can be combined with pathProgress to get the exact total path progress
 
-	currentHealth int
-	currentSpeed  float32
+	currentHealth   int
+	currentSpeed    float32
+	currentSpeedMod float32
+	speedModEnd     time.Time
 }
 
 func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress float64) *Enemy {
 	ret := &Enemy{
-		enemyType:    enemyType,
-		pathNodeLast: pathNodeLast,
-		pathNodeNext: pathNodeNext,
-		pathProgress: pathProgress,
+		enemyType:       enemyType,
+		pathNodeLast:    pathNodeLast,
+		pathNodeNext:    pathNodeNext,
+		pathProgress:    pathProgress,
+		currentSpeedMod: 1,
 	}
 
 	switch enemyType {
@@ -86,6 +90,12 @@ func (e *Enemy) GetPathProgress() float64 {
 }
 
 func (e *Enemy) SetPathProgress(pathProgress float64) {
+	// we need to check time since we can't know when and how frequently
+	// SetPathProgress is called. but its called sometimes, which is good...
+	if e.speedModEnd.Before(time.Now()) {
+		e.currentSpeedMod = 1
+		e.speedModEnd = time.Time{}
+	}
 	e.pathProgress = pathProgress
 }
 
@@ -102,11 +112,17 @@ func (e *Enemy) SetHealth(health int) {
 }
 
 func (e *Enemy) GetSpeed() float32 {
-	return e.currentSpeed
+	return e.currentSpeed * e.currentSpeedMod
 }
 
-func (e *Enemy) SetSpeed(speed float32) {
-	e.currentSpeed = speed
+func (e *Enemy) SetSpeedMod(speedMod float32, howLong float32) {
+	// This is criminal...
+	e.speedModEnd = time.Now().Add(time.Duration(howLong) * time.Second)
+	e.currentSpeedMod = speedMod
+}
+
+func (e *Enemy) GetSpeedMod() float32 {
+	return e.currentSpeedMod
 }
 
 func (e *Enemy) GetValue() int64 {

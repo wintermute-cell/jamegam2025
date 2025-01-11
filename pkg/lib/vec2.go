@@ -61,6 +61,17 @@ func (v Vec2) Normalize() Vec2 {
 	return v.Div(v.Len())
 }
 
+// Rotate returns the vector rotated by an angle in degrees
+func (v Vec2) Rotate(deg float32) Vec2 {
+	rad := deg * math.Pi / 180
+	cos := float32(math.Cos(float64(rad)))
+	sin := float32(math.Sin(float64(rad)))
+	return Vec2{
+		X: v.X*cos - v.Y*sin,
+		Y: v.X*sin + v.Y*cos,
+	}
+}
+
 // Dist returns the distance between two vectors
 func (v Vec2) Dist(v2 Vec2) float32 {
 	return v.Sub(v2).Len()

@@ -298,6 +298,12 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 		screen.DrawImage(enem.GetSprite(), &ebiten.DrawImageOptions{
 			GeoM: geom,
 		})
+		if enem.GetSpeedMod() < 1.0 {
+			// Draw a slow effect
+			screen.DrawImage(enemy.SpriteSlowEffect, &ebiten.DrawImageOptions{
+				GeoM: geom,
+			})
+		}
 
 		geom.Reset()
 		geom.Scale(4, 4)

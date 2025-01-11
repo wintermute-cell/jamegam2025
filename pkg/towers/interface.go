@@ -27,4 +27,7 @@ type TowerType int
 const (
 	TowerTypeNone TowerType = iota
 	TowerTypeBasic
+	TowerTypeTacks
+	TowerTypeIce
+	TowerTypeAoe
 )
