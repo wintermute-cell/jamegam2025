@@ -90,7 +90,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		hoveredTileIsOnPath: false,
 		towerSelected:       0,
 		currentMana:         0,
-		maximumMana:         100,
+		maximumMana:         500,
 		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
 		waveController:      wavecontroller.NewWaveController(100),
 		peace:               true,
@@ -128,10 +128,23 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	e.currentMana += e.grid.droppedMana
 	e.grid.droppedMana = 0
 
-	// Hat Button
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
+	// Start Wave
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		e.currentWave = append(e.currentWave, e.waveController.GenerateNextWave()...)
 		e.peace = false
+	}
+
+	// Hat Button
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
+		manaPercentage := int(float32(e.currentMana) / float32(e.maximumMana) * 100)
+		if manaPercentage < 50 {
+			e.currentCurrency += int64(float64(e.currentMana) * 5.0 * 1.0)
+		} else if manaPercentage < 75 {
+			e.currentCurrency += int64(float64(e.currentMana) * 5.0 * 1.5)
+		} else {
+			e.currentCurrency += int64(float64(e.currentMana) * 5.0 * 2.0)
+		}
+		e.currentMana = 0
 	}
 
 	// Tower Buttons
