@@ -47,11 +47,17 @@ type EntityInventory struct {
 
 	// Tower Buttons
 	basicTowerButton  lib.Vec2I
+	tackTowerButton   lib.Vec2I
+	iceTowerButton    lib.Vec2I
+	aoeTowerButton    lib.Vec2I
 	blueprintSelected towers.TowerType
 
 	// Resources
 	inventorySlotImage *ebiten.Image
 	basicTowerImage    *ebiten.Image
+	tackTowerImage     *ebiten.Image
+	iceTowerImage      *ebiten.Image
+	aoeTowerImage      *ebiten.Image
 	hatImage           *ebiten.Image
 	textFace           *text.GoTextFace
 	inventoryBarImage  *ebiten.Image
@@ -75,6 +81,12 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	basicTowerImage, _, err := ebitenutil.NewImageFromFile("test_tower.png")
 	lib.Must(err)
+	tackTowerImage, _, err := ebitenutil.NewImageFromFile("test_towertacks.png")
+	lib.Must(err)
+	iceTowerImage, _, err := ebitenutil.NewImageFromFile("test_towerice.png")
+	lib.Must(err)
+	aoeTowerImage, _, err := ebitenutil.NewImageFromFile("test_toweraoe.png")
+	lib.Must(err)
 	hatImage, _, err := ebitenutil.NewImageFromFile("test_hat.png")
 	lib.Must(err)
 	arialFile, err := ebitenutil.OpenFile("Arial.ttf")
@@ -88,6 +100,9 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		buttonPixels:         96,
 		inventorySlotImage:   inventorySlotImage,
 		basicTowerImage:      basicTowerImage,
+		tackTowerImage:       tackTowerImage,
+		iceTowerImage:        iceTowerImage,
+		aoeTowerImage:        aoeTowerImage,
 		hatImage:             hatImage,
 		inventory:            [4]EntityItemPlaceholder{},
 		grid:                 grid,
@@ -106,6 +121,9 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		inventoryBarImage:    inventoryBarImage,
 	}
 	newEnt.basicTowerButton = lib.NewVec2I(2, 1)
+	newEnt.tackTowerButton = lib.NewVec2I(3, 1)
+	newEnt.iceTowerButton = lib.NewVec2I(4, 1)
+	newEnt.aoeTowerButton = lib.NewVec2I(5, 1)
 	return newEnt
 }
 
@@ -165,12 +183,27 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	}
 
 	// Tower Buttons
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
-		if e.blueprintSelected == towers.TowerTypeBasic {
-			e.blueprintSelected = towers.TowerTypeNone
-		} else {
-			e.blueprintSelected = towers.TowerTypeBasic
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
+			e.selectTowerType(towers.TowerTypeBasic)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.tackTowerButton)) {
+			e.selectTowerType(towers.TowerTypeTacks)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.iceTowerButton)) {
+			e.selectTowerType(towers.TowerTypeIce)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.aoeTowerButton)) {
+			e.selectTowerType(towers.TowerTypeAoe)
 		}
+	}
+
+	// Tower Hotkeys
+	if inpututil.IsKeyJustPressed(ebiten.Key1) {
+		e.selectTowerType(towers.TowerTypeBasic)
+	} else if inpututil.IsKeyJustPressed(ebiten.Key2) {
+		e.selectTowerType(towers.TowerTypeTacks)
+	} else if inpututil.IsKeyJustPressed(ebiten.Key3) {
+		e.selectTowerType(towers.TowerTypeIce)
+	} else if inpututil.IsKeyJustPressed(ebiten.Key4) {
+		e.selectTowerType(towers.TowerTypeAoe)
 	}
 
 	// Tower Placement
@@ -295,17 +328,42 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	}
 
 	// Tower Button Icons
+	// Basic Tower
 	basicTowerImgPos := e.getButtonTowerIconPosition(e.basicTowerButton)
 	geomT1im := ebiten.GeoM{}
 	geomT1im.Scale(4, 4)
 	geomT1im.Translate(float64(basicTowerImgPos.X), float64(basicTowerImgPos.Y))
 	screen.DrawImage(e.basicTowerImage, &ebiten.DrawImageOptions{GeoM: geomT1im})
+	// Tack Tower
+	tackTowerImgPos := e.getButtonTowerIconPosition(e.tackTowerButton)
+	geomT2im := ebiten.GeoM{}
+	geomT2im.Scale(4, 4)
+	geomT2im.Translate(float64(tackTowerImgPos.X), float64(tackTowerImgPos.Y))
+	screen.DrawImage(e.tackTowerImage, &ebiten.DrawImageOptions{GeoM: geomT2im})
+	// Ice Tower
+	iceTowerImgPos := e.getButtonTowerIconPosition(e.iceTowerButton)
+	geomT3im := ebiten.GeoM{}
+	geomT3im.Scale(4, 4)
+	geomT3im.Translate(float64(iceTowerImgPos.X), float64(iceTowerImgPos.Y))
+	screen.DrawImage(e.iceTowerImage, &ebiten.DrawImageOptions{GeoM: geomT3im})
+	// AOE Tower
+	aoeTowerImgPos := e.getButtonTowerIconPosition(e.aoeTowerButton)
+	geomT4im := ebiten.GeoM{}
+	geomT4im.Scale(4, 4)
+	geomT4im.Translate(float64(aoeTowerImgPos.X), float64(aoeTowerImgPos.Y))
+	screen.DrawImage(e.aoeTowerImage, &ebiten.DrawImageOptions{GeoM: geomT4im})
 
 	// Select Tower
 	buttonOutline := color.RGBA{100, 255, 100, 255}
 
 	if e.blueprintSelected == towers.TowerTypeBasic {
 		e.highlightButton(e.getButtonPosition(e.basicTowerButton), buttonOutline, screen)
+	} else if e.blueprintSelected == towers.TowerTypeTacks {
+		e.highlightButton(e.getButtonPosition(e.tackTowerButton), buttonOutline, screen)
+	} else if e.blueprintSelected == towers.TowerTypeIce {
+		e.highlightButton(e.getButtonPosition(e.iceTowerButton), buttonOutline, screen)
+	} else if e.blueprintSelected == towers.TowerTypeAoe {
+		e.highlightButton(e.getButtonPosition(e.aoeTowerButton), buttonOutline, screen)
 	}
 
 	// Buttons
@@ -362,4 +420,12 @@ func (e *EntityInventory) getButtonTowerIconPosition(position lib.Vec2I) lib.Vec
 	buttonPos := e.getButtonPosition(position)
 	iconPos := lib.NewVec2I(buttonPos.X+16, buttonPos.Y+16)
 	return iconPos
+}
+
+func (e *EntityInventory) selectTowerType(towerType towers.TowerType) {
+	if e.blueprintSelected == towerType {
+		e.blueprintSelected = towers.TowerTypeNone
+	} else {
+		e.blueprintSelected = towerType
+	}
 }
