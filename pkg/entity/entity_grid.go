@@ -41,6 +41,8 @@ type EntityGrid struct {
 	messageTimer   float64
 	currentMessage string
 
+	towerRangeIndicator bool
+
 	textFace *text.GoTextFace
 
 	// Map & Path
@@ -120,19 +122,20 @@ func NewEntityGrid(
 	lib.Must(err)
 
 	newEnt := &EntityGrid{
-		xTiles:        xTiles,
-		yTiles:        yTiles,
-		tilePixels:    tilePixels,
-		mapDef:        mapDef,
-		enemyPath:     enemyPath,
-		projectiles:   lib.NewFreeList[towers.Projectile](2000),
-		enemies:       lib.NewFreeList[*enemy.Enemy](2000),
-		platformImage: platformImage,
-		floorImage:    floorImage,
-		spatialHash:   spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
-		textFace:      &text.GoTextFace{Source: textFaceSource, Size: 24},
-		towers:        make(map[lib.Vec2I]towers.Tower),
-		droppedMana:   0,
+		xTiles:              xTiles,
+		yTiles:              yTiles,
+		tilePixels:          tilePixels,
+		mapDef:              mapDef,
+		enemyPath:           enemyPath,
+		projectiles:         lib.NewFreeList[towers.Projectile](2000),
+		enemies:             lib.NewFreeList[*enemy.Enemy](2000),
+		platformImage:       platformImage,
+		floorImage:          floorImage,
+		spatialHash:         spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
+		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
+		towers:              make(map[lib.Vec2I]towers.Tower),
+		droppedMana:         0,
+		towerRangeIndicator: true,
 	}
 	return newEnt
 }

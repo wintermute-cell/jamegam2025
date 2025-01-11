@@ -23,6 +23,10 @@ func (e *WaveController) Init() {
 
 }
 
+func (e *WaveController) GetResources() int64 {
+	return e.resources
+}
+
 func (e *WaveController) GenerateNextWave() []enemy.EnemyType {
 	next_enemies := []enemy.EnemyType{}
 	var currentCost int64

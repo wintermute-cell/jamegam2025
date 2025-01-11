@@ -29,12 +29,15 @@ type EntityInventory struct {
 	currentWave     []enemy.EnemyType
 	peace           bool
 	enemySpawnTimer float64
+	waveCounter     int64
 
-	hoveredTile         lib.Vec2I
-	hoveredTileHasTower bool
-	hoveredTileIsOnPath bool
+	hoveredTile          lib.Vec2I
+	hoveredTileHasTower  bool
+	hoveredTileIsOnPath  bool
+	turretRangeIndicator bool
 
-	tilePixels int
+	tilePixels   int
+	buttonPixels int
 
 	currentMana int64
 	maximumMana int64
@@ -68,7 +71,7 @@ func (e *EntityInventory) isOnPath(vect lib.Vec2I) bool {
 }
 
 func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
-	inventorySlotImage, _, err := ebitenutil.NewImageFromFile("test_inventoryslot.png")
+	inventorySlotImage, _, err := ebitenutil.NewImageFromFile("inventory_slot_24x24.png")
 	lib.Must(err)
 	basicTowerImage, _, err := ebitenutil.NewImageFromFile("test_tower.png")
 	lib.Must(err)
@@ -80,22 +83,25 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 
 	newEnt := &EntityInventory{
-		tilePixels:          tilePixels,
-		inventorySlotImage:  inventorySlotImage,
-		basicTowerImage:     basicTowerImage,
-		hatImage:            hatImage,
-		inventory:           [4]EntityItemPlaceholder{},
-		grid:                grid,
-		hoveredTileHasTower: false,
-		hoveredTileIsOnPath: false,
-		towerSelected:       0,
-		currentMana:         0,
-		maximumMana:         500,
-		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
-		waveController:      wavecontroller.NewWaveController(100),
-		peace:               true,
-		enemySpawnTimer:     0.0,
-		currentCurrency:     1_000, // TODO: remove this
+		tilePixels:           tilePixels,
+		buttonPixels:         96,
+		inventorySlotImage:   inventorySlotImage,
+		basicTowerImage:      basicTowerImage,
+		hatImage:             hatImage,
+		inventory:            [4]EntityItemPlaceholder{},
+		grid:                 grid,
+		hoveredTileHasTower:  false,
+		hoveredTileIsOnPath:  false,
+		towerSelected:        0,
+		currentMana:          0,
+		maximumMana:          500,
+		textFace:             &text.GoTextFace{Source: textFaceSource, Size: 24},
+		waveController:       wavecontroller.NewWaveController(100),
+		peace:                true,
+		enemySpawnTimer:      0.0,
+		currentCurrency:      1_000, // TODO: remove this
+		waveCounter:          0,
+		turretRangeIndicator: true,
 	}
 	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(int(towers.TowerTypeBasic))
 	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(int(towers.TowerTypeBasic))
@@ -132,19 +138,29 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		e.currentWave = append(e.currentWave, e.waveController.GenerateNextWave()...)
 		e.peace = false
+		e.waveCounter++
+		e.grid.ShowMessage(fmt.Sprintf("Wave %d started! (Strength: %d)", e.waveCounter, e.waveController.GetResources()))
+	}
+
+	// Toggle Turret Range Indicators
+	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		e.ToggleTowerIndicator()
 	}
 
 	// Hat Button
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
 		manaPercentage := int(float32(e.currentMana) / float32(e.maximumMana) * 100)
+		var newCurrency int64 = 0
 		if manaPercentage < 50 {
-			e.currentCurrency += int64(float64(e.currentMana) * 5.0 * 1.0)
+			newCurrency += int64(float64(e.currentMana) * 5.0 * 1.0)
 		} else if manaPercentage < 75 {
-			e.currentCurrency += int64(float64(e.currentMana) * 5.0 * 1.5)
+			newCurrency += int64(float64(e.currentMana) * 5.0 * 1.5)
 		} else {
-			e.currentCurrency += int64(float64(e.currentMana) * 5.0 * 2.0)
+			newCurrency += int64(float64(e.currentMana) * 5.0 * 2.0)
 		}
+		e.currentCurrency += newCurrency
 		e.currentMana = 0
+		e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
 	}
 
 	// Tower Buttons
@@ -274,6 +290,16 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	if e.towerSelected == towers.TowerTypeBasic {
 		e.highlightButton(e.basicTowerButton, buttonOutline, screen)
 	}
+
+	// Buttons
+	for i := 0; i < 9; i++ {
+		buttonPos := e.getButtonPosition(lib.NewVec2I(i, 0))
+		buttonImgOptions := &ebiten.DrawImageOptions{}
+		buttonImgOptions.GeoM.Scale(4, 4)
+		buttonImgOptions.GeoM.Translate(float64(buttonPos.X), float64(buttonPos.Y))
+		screen.DrawImage(e.inventorySlotImage, buttonImgOptions)
+	}
+
 }
 
 func (e *EntityInventory) getTowerButtonPosition(buttonNumber int) lib.Vec2 {
@@ -304,4 +330,21 @@ func (e *EntityInventory) isInHatButton(mouseX int, mouseY int) bool {
 	hatButtonX := int(7*e.tilePixels + e.tilePixels/2)
 	hatButtonY := int(12*e.tilePixels + e.tilePixels/4)
 	return mouseX >= hatButtonX && mouseX < hatButtonX+e.tilePixels && mouseY >= hatButtonY && mouseY < hatButtonY+5*e.tilePixels/4
+}
+
+func (e *EntityInventory) ToggleTowerIndicator() {
+	if e.turretRangeIndicator {
+		e.grid.ShowMessage("Range indicator disabled.")
+	} else {
+		e.grid.ShowMessage("Range indicator enabled.")
+	}
+	e.turretRangeIndicator = !e.turretRangeIndicator
+	e.grid.towerRangeIndicator = e.turretRangeIndicator
+}
+
+func (e *EntityInventory) getButtonPosition(position lib.Vec2I) lib.Vec2I {
+	buttonPos := lib.NewVec2I(0, 0)
+	buttonPos.X = int(24 + position.X*(e.buttonPixels+14))
+	buttonPos.Y = int(12*e.tilePixels + 18 + position.Y*(e.buttonPixels+10))
+	return buttonPos
 }
