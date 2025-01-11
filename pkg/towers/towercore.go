@@ -7,21 +7,25 @@ import (
 )
 
 type Towercore struct {
-	rof          float64
-	radius       float32
-	sprite       *ebiten.Image
-	position     lib.Vec2I
-	drawPosition lib.Vec2
+	rof            float64
+	radius         float32
+	sprite         *ebiten.Image
+	position       lib.Vec2I
+	drawPosition   lib.Vec2
+	speedUpgrades  int32
+	damageUpgrades int32
 
 	lastFiredAgo float64
 }
 
 func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position lib.Vec2I) *Towercore {
 	ret := &Towercore{
-		rof:      rof,
-		radius:   radius,
-		sprite:   sprite,
-		position: position,
+		rof:            rof,
+		radius:         radius,
+		sprite:         sprite,
+		position:       position,
+		speedUpgrades:  0,
+		damageUpgrades: 0,
 	}
 
 	ret.drawPosition = position.ToVec2() // TODO: for now, later some animation
@@ -31,6 +35,26 @@ func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position li
 
 func (tc *Towercore) Radius() float32 {
 	return tc.radius
+}
+
+func (tc *Towercore) GetTotalUpgrades() int32 {
+	return tc.speedUpgrades + tc.damageUpgrades
+}
+
+func (tc *Towercore) GetSpeedUpgrades() int32 {
+	return tc.speedUpgrades
+}
+
+func (tc *Towercore) GetDamageUpgrades() int32 {
+	return tc.damageUpgrades
+}
+
+func (tc *Towercore) SpeedUpgrade() {
+	tc.speedUpgrades++
+}
+
+func (tc *Towercore) DamageUpgrade() {
+	tc.damageUpgrades++
 }
 
 func (tc *Towercore) Draw(screen *ebiten.Image) {

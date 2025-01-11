@@ -59,18 +59,19 @@ type EntityInventory struct {
 	firerateButton lib.Vec2I
 
 	// Resources
-	inventorySlotImage  *ebiten.Image
-	basicTowerImage     *ebiten.Image
-	tackTowerImage      *ebiten.Image
-	iceTowerImage       *ebiten.Image
-	aoeTowerImage       *ebiten.Image
-	hatImage            *ebiten.Image
-	textFace            *text.GoTextFace
-	playButtonImage     *ebiten.Image
-	removeButtonImage   *ebiten.Image
-	damageButtonImage   *ebiten.Image
-	firerateButtonImage *ebiten.Image
-	inventoryBarImage   *ebiten.Image
+	inventorySlotImage    *ebiten.Image
+	basicTowerImage       *ebiten.Image
+	tackTowerImage        *ebiten.Image
+	iceTowerImage         *ebiten.Image
+	aoeTowerImage         *ebiten.Image
+	hatImage              *ebiten.Image
+	textFace              *text.GoTextFace
+	playButtonImage       *ebiten.Image
+	removeButtonImage     *ebiten.Image
+	damageButtonImage     *ebiten.Image
+	firerateButtonImage   *ebiten.Image
+	inventoryBarImage     *ebiten.Image
+	upgradeIndicatorImage *ebiten.Image
 }
 
 func isInBounds(vect lib.Vec2I) bool {
@@ -113,43 +114,46 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	firerateButtonImage, _, err := ebitenutil.NewImageFromFile("test_ammobutton.png")
 	lib.Must(err)
+	upgradeIndicatorImage, _, err := ebitenutil.NewImageFromFile("upgradeindicator.png")
+	lib.Must(err)
 
 	newEnt := &EntityInventory{
-		tilePixels:           tilePixels,
-		buttonPixels:         96,
-		inventorySlotImage:   inventorySlotImage,
-		basicTowerImage:      basicTowerImage,
-		tackTowerImage:       tackTowerImage,
-		iceTowerImage:        iceTowerImage,
-		aoeTowerImage:        aoeTowerImage,
-		hatImage:             hatImage,
-		inventory:            [4]EntityItemPlaceholder{},
-		grid:                 grid,
-		hoveredTileHasTower:  false,
-		hoveredTileIsOnPath:  false,
-		blueprintSelected:    0,
-		currentMana:          0,
-		maximumMana:          500,
-		textFace:             &text.GoTextFace{Source: textFaceSource, Size: 24},
-		waveController:       wavecontroller.NewWaveController(100),
-		peace:                true,
-		enemySpawnTimer:      0.0,
-		currentCurrency:      1_000, // TODO: remove this
-		waveCounter:          0,
-		turretRangeIndicator: true,
-		inventoryBarImage:    inventoryBarImage,
-		playButtonImage:      playButtonImage,
-		removeButtonImage:    removeButtonImage,
-		damageButtonImage:    damageButtonImage,
-		firerateButtonImage:  firerateButtonImage,
-		basicTowerButton:     lib.NewVec2I(2, 1),
-		tackTowerButton:      lib.NewVec2I(3, 1),
-		iceTowerButton:       lib.NewVec2I(4, 1),
-		aoeTowerButton:       lib.NewVec2I(5, 1),
-		playButton:           lib.NewVec2I(0, 0),
-		removeButton:         lib.NewVec2I(1, 0),
-		damageButton:         lib.NewVec2I(2, 0),
-		firerateButton:       lib.NewVec2I(3, 0),
+		tilePixels:            tilePixels,
+		buttonPixels:          96,
+		inventorySlotImage:    inventorySlotImage,
+		basicTowerImage:       basicTowerImage,
+		tackTowerImage:        tackTowerImage,
+		iceTowerImage:         iceTowerImage,
+		aoeTowerImage:         aoeTowerImage,
+		hatImage:              hatImage,
+		inventory:             [4]EntityItemPlaceholder{},
+		grid:                  grid,
+		hoveredTileHasTower:   false,
+		hoveredTileIsOnPath:   false,
+		blueprintSelected:     0,
+		currentMana:           0,
+		maximumMana:           500,
+		textFace:              &text.GoTextFace{Source: textFaceSource, Size: 24},
+		waveController:        wavecontroller.NewWaveController(100),
+		peace:                 true,
+		enemySpawnTimer:       0.0,
+		currentCurrency:       1_000, // TODO: remove this
+		waveCounter:           0,
+		turretRangeIndicator:  true,
+		inventoryBarImage:     inventoryBarImage,
+		playButtonImage:       playButtonImage,
+		removeButtonImage:     removeButtonImage,
+		damageButtonImage:     damageButtonImage,
+		firerateButtonImage:   firerateButtonImage,
+		upgradeIndicatorImage: upgradeIndicatorImage,
+		basicTowerButton:      lib.NewVec2I(2, 1),
+		tackTowerButton:       lib.NewVec2I(3, 1),
+		iceTowerButton:        lib.NewVec2I(4, 1),
+		aoeTowerButton:        lib.NewVec2I(5, 1),
+		playButton:            lib.NewVec2I(0, 0),
+		removeButton:          lib.NewVec2I(1, 0),
+		damageButton:          lib.NewVec2I(2, 0),
+		firerateButton:        lib.NewVec2I(3, 0),
 	}
 	return newEnt
 }
@@ -281,6 +285,20 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		e.SellSelectedTower()
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyX) {
 		e.SellSelectedTower()
+	}
+
+	// Upgrade Tower Damage Button and Hotkey
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.damageButton)) {
+		e.UpgradeSelectedTowerDamage()
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		e.UpgradeSelectedTowerDamage()
+	}
+
+	// Upgrade Tower Speed Button and Hotkey
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.firerateButton)) {
+		e.UpgradeSelectedTowerSpeed()
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		e.UpgradeSelectedTowerSpeed()
 	}
 
 	return nil
@@ -502,4 +520,41 @@ func (e *EntityInventory) SellSelectedTower() {
 		e.currentCurrency += sellPrice
 		e.grid.ShowMessage(fmt.Sprintf("Sold selected tower for %d!", sellPrice))
 	}
+}
+
+func (e *EntityInventory) UpgradeSelectedTowerSpeed() {
+	tower := e.grid.towers[e.grid.selectedTower]
+	if tower.GetTotalUpgrades() >= 7 {
+		e.grid.ShowMessage("This tower has reached the maximum amount of total upgrades!")
+	} else if tower.GetSpeedUpgrades() >= 5 {
+		e.grid.ShowMessage("This tower has reached the maximum amount of speed upgrades!")
+	} else {
+		upgradePrice := int64(float64(tower.GetTotalUpgrades()+1) * float64(tower.Price()))
+		if e.currentCurrency >= upgradePrice {
+			e.currentCurrency -= upgradePrice
+			tower.SpeedUpgrade()
+			e.grid.ShowMessage("Tower speed upgraded!")
+		} else {
+			e.grid.ShowMessage(fmt.Sprintf("Not enough currency! (Required: %d)", upgradePrice))
+		}
+	}
+}
+
+func (e *EntityInventory) UpgradeSelectedTowerDamage() {
+	tower := e.grid.towers[e.grid.selectedTower]
+	if tower.GetTotalUpgrades() >= 7 {
+		e.grid.ShowMessage("This tower has reached the maximum amount of total upgrades!")
+	} else if tower.GetDamageUpgrades() >= 5 {
+		e.grid.ShowMessage("This tower has reached the maximum amount of damage upgrades!")
+	} else {
+		upgradePrice := int64(float64(tower.GetTotalUpgrades()+1) * float64(tower.Price()))
+		if e.currentCurrency >= upgradePrice {
+			e.currentCurrency -= upgradePrice
+			tower.DamageUpgrade()
+			e.grid.ShowMessage("Tower damage upgraded!")
+		} else {
+			e.grid.ShowMessage(fmt.Sprintf("Not enough currency! (Required: %d)", upgradePrice))
+		}
+	}
+
 }

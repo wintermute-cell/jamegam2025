@@ -12,6 +12,11 @@ type Tower interface {
 	Draw(screen *ebiten.Image)
 	Price() int64
 	Radius() float32
+	GetTotalUpgrades() int32
+	GetSpeedUpgrades() int32
+	GetDamageUpgrades() int32
+	SpeedUpgrade()
+	DamageUpgrade()
 }
 
 type EnemyManager interface {
