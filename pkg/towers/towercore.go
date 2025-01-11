@@ -40,14 +40,6 @@ func (tc *Towercore) Draw(screen *ebiten.Image) {
 		screen,
 		float32(tc.drawPosition.X+32),
 		float32(tc.drawPosition.Y+32),
-		float32(tc.radius)+64,
-		1.0,
-		color.RGBA{255, 0, 255, 255},
-		false)
-	vector.StrokeCircle(
-		screen,
-		float32(tc.drawPosition.X+32),
-		float32(tc.drawPosition.Y+32),
 		float32(tc.radius),
 		1.0,
 		color.RGBA{255, 0, 255, 255},

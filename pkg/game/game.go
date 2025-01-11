@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"jamegam/pkg/entity"
 	"jamegam/pkg/lib"
+	"log"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -61,6 +62,7 @@ pppppppppppppp.p
 
 // Update is part of the ebiten.Game interface.
 func (g *Game) Update() error {
+	log.Println("Update")
 	specialUpdate(g)
 	for _, entity := range g.entities {
 		if err := entity.Update(g); err != nil {

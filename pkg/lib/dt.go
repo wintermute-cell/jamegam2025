@@ -8,5 +8,10 @@ func Dt() float64 {
 		return 0.0
 	}
 
-	return 1.0 / tps
+	realdt := 1.0 / tps
+	if realdt > 1 { // prevent huge spikes if the game is paused
+		return 1.0 / 60.0
+	}
+
+	return realdt
 }

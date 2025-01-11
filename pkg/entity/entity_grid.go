@@ -18,6 +18,7 @@ import (
 // Ensure EntityGrid implements Entity
 var _ Entity = &EntityGrid{}
 var _ towers.EnemyManager = &EntityGrid{}
+var _ towers.ProjectileManager = &EntityGrid{}
 
 type mapTileType int
 
@@ -40,11 +41,13 @@ type EntityGrid struct {
 	mapTiles  [][]mapTileType
 
 	// Enemies and Towers
-	// enemies    map[lib.Vec2I][]*enemy.Enemy
-	// newEnemies map[lib.Vec2I][]*enemy.Enemy // Used for updating of enemy positions
-	enemies     []*enemy.Enemy
+	// enemies     []*enemy.Enemy // TODO: maybe use a free list here too
+	enemies     *lib.FreeList[*enemy.Enemy]
 	spatialHash *spatialhash.SpatialHash
 	towers      map[lib.Vec2I]towers.Tower
+
+	// Projectiles
+	projectiles *lib.FreeList[towers.Projectile]
 
 	// Resources
 	platformImage *ebiten.Image
@@ -54,9 +57,19 @@ type EntityGrid struct {
 	REMOVE_enemyspawntimer float64
 }
 
+// AddProjectile implements towers.ProjectileManager.
+func (e *EntityGrid) AddProjectile(projectile towers.Projectile) int {
+	return e.projectiles.Insert(projectile)
+}
+
+// RemoveProjectile implements towers.ProjectileManager.
+func (e *EntityGrid) RemoveProjectile(idx int) {
+	e.projectiles.Remove(idx)
+}
+
 // GetEnemies implements towers.EnemyManager.
 // NOTE: MUST BE CALLED AFTER SPATIAL HASH IS CONSTRUCTED
-func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) []*enemy.Enemy {
+func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) ([]*enemy.Enemy, []lib.Vec2I) {
 	ret := []*enemy.Enemy{}
 	shBounds := spatialhash.SHBounds{
 		Mx:      int32(point.X),
@@ -67,7 +80,8 @@ func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) []*enemy.Enemy {
 	hitIdxs := e.spatialHash.InBounds(shBounds)
 	for _, hit := range hitIdxs {
 		idx := hit.ID
-		enemy := e.enemies[idx]
+		// enemy := e.enemies[idx]
+		enemy := e.enemies.Get(int(idx))
 		lastIdx, nextIdx := enemy.GetPathNodes()
 		last := e.enemyPath[lastIdx].ToVec2().Mul(float32(e.tilePixels))
 		next := e.enemyPath[nextIdx].ToVec2().Mul(float32(e.tilePixels))
@@ -77,7 +91,7 @@ func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) []*enemy.Enemy {
 		}
 	}
 
-	return ret
+	return ret, e.enemyPath
 }
 
 func NewEntityGrid(
@@ -97,12 +111,12 @@ func NewEntityGrid(
 		tilePixels:    tilePixels,
 		mapDef:        mapDef,
 		enemyPath:     enemyPath,
+		projectiles:   lib.NewFreeList[towers.Projectile](2000),
+		enemies:       lib.NewFreeList[*enemy.Enemy](2000),
 		platformImage: platformImage,
 		floorImage:    floorImage,
 		spatialHash:   spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
-		// enemies:       make(map[lib.Vec2I][]*enemy.Enemy),
-		// newEnemies:    make(map[lib.Vec2I][]*enemy.Enemy),
-		towers: make(map[lib.Vec2I]towers.Tower),
+		towers:        make(map[lib.Vec2I]towers.Tower),
 	}
 	return newEnt
 }
@@ -137,15 +151,20 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 
 	dt := lib.Dt()
 	e.REMOVE_enemyspawntimer += dt
-	if e.REMOVE_enemyspawntimer > 5.0 {
+	if e.REMOVE_enemyspawntimer > 0.6 {
 		e.REMOVE_enemyspawntimer = 0
 		enem := enemy.NewEnemy(enemy.EnemyTypeBasic, 0, 1, 0.0)
-		e.enemies = append(e.enemies, enem)
+		// e.enemies = append(e.enemies, enem)
+		idx := e.enemies.Insert(enem)
+		enem.SetDestroyFunc(func() {
+			e.enemies.Remove(idx)
+		})
 	}
 
 	// Move Enemies
 	shElements := []*spatialhash.SHElement{}
-	for idx, enemy := range e.enemies {
+	// for idx, enemy := range e.enemies {
+	e.enemies.FuncAll(func(idx int, enemy *enemy.Enemy) {
 		lastIdx, nextIdx := enemy.GetPathNodes()
 		progress := enemy.GetPathProgress()
 		progress += 1.0 * dt
@@ -171,15 +190,19 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 				HHeight: int32(e.tilePixels / 2),
 			},
 		})
-
-	}
+	})
 
 	e.spatialHash.Construct(shElements)
 
 	// Update Towers
 	for _, tower := range e.towers {
-		tower.Update(e)
+		tower.Update(e, e)
 	}
+
+	// Update Projectiles
+	e.projectiles.FuncAll(func(_ int, projectile towers.Projectile) {
+		projectile.Update(e, e)
+	})
 
 	return nil
 }
@@ -230,7 +253,8 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	}
 
 	// Draw Enemies
-	for _, enem := range e.enemies {
+	// for _, enem := range e.enemies {
+	e.enemies.FuncAll(func(_ int, enem *enemy.Enemy) {
 		progress := enem.GetPathProgress()
 		lastIdx, nextIdx := enem.GetPathNodes()
 		last := e.enemyPath[lastIdx].ToVec2()
@@ -246,22 +270,17 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 
 		geom.Reset()
 		geom.Scale(4, 4)
-
-		// for debugging, draw line from enemy to the node that contains the enemy
-		// vector.StrokeLine(screen,
-		// 	float32(pos.X*float32(e.tilePixels)+float32(e.tilePixels)/2),
-		// 	float32(pos.Y*float32(e.tilePixels)+float32(e.tilePixels)/2),
-		// 	float32(cellKey.X*e.tilePixels+e.tilePixels/2),
-		// 	float32(cellKey.Y*e.tilePixels+e.tilePixels/2),
-		// 	1.0,
-		// 	color.RGBA{0, 0, 255, 255},
-		// 	false)
-	}
+	})
 
 	// Draw Towers
 	for _, tower := range e.towers {
 		tower.Draw(screen)
 	}
+
+	// Draw Projectiles
+	e.projectiles.FuncAll(func(_ int, projectile towers.Projectile) {
+		projectile.Draw(screen)
+	})
 }
 
 func drawGridLine(screen *ebiten.Image, x, y, tilePixels int) {

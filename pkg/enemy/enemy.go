@@ -14,6 +14,8 @@ type Enemy struct {
 	pathNodeNext int
 	pathProgress float64
 
+	destroyFunc func()
+
 	numPassedNodes float64 // The number of path nodes already passed, can be combined with pathProgress to get the exact total path progress
 
 	currentHealth int
@@ -30,19 +32,23 @@ func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress 
 
 	switch enemyType {
 	case EnemyTypeBasic:
-		ret.currentHealth = 100
+		ret.currentHealth = 1
 		ret.currentSpeed = 1
 	case EnemyTypeFast:
-		ret.currentHealth = 100
+		ret.currentHealth = 1
 		ret.currentSpeed = 3
 	case EnemyTypeTank:
-		ret.currentHealth = 200
+		ret.currentHealth = 4
 		ret.currentSpeed = 0.8
 	default:
 		panic("Unknown enemy type")
 	}
 
 	return ret
+}
+
+func (e *Enemy) SetDestroyFunc(f func()) {
+	e.destroyFunc = f
 }
 
 func (e *Enemy) GetPathNodes() (last, next int) {
@@ -68,6 +74,9 @@ func (e *Enemy) GetHealth() int {
 
 func (e *Enemy) SetHealth(health int) {
 	e.currentHealth = health
+	if e.currentHealth <= 0 {
+		e.destroyFunc()
+	}
 }
 
 func (e *Enemy) GetSpeed() float32 {

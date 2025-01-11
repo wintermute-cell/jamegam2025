@@ -3,7 +3,6 @@ package towers
 import (
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
-	"log"
 )
 
 var _ Tower = &TowerBasic{}
@@ -14,15 +13,13 @@ type TowerBasic struct {
 
 func NewTowerBasic(position lib.Vec2I) *TowerBasic {
 	return &TowerBasic{
-		Towercore: NewTowercore(1.0, 100.0, spriteTowerBasic, position),
+		Towercore: NewTowercore(1.0, 200.0, spriteTowerBasic, position),
 	}
 }
 
 // Update implements Tower.
-func (t *TowerBasic) Update(em EnemyManager) error {
-	enemies := em.GetEnemies(t.position.ToVec2(), t.radius)
-
-	log.Printf("enemies: %v", len(enemies))
+func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
+	enemies, path := em.GetEnemies(t.position.ToVec2(), t.radius)
 	var furthestProgress float64 = -1
 	var furthestEnemy *enemy.Enemy
 	for _, e := range enemies {
@@ -33,10 +30,22 @@ func (t *TowerBasic) Update(em EnemyManager) error {
 		}
 	}
 
-	if t.ShouldFire(lib.Dt()) && false { // TODO: remove false
-		// TODO:
-		// panic("unimplemented")
-		log.Println("Firing at enemy %v", furthestEnemy)
+	// TODO: if there is an ememy in range...
+	if t.ShouldFire(lib.Dt()) && furthestEnemy != nil {
+		lastIdx, nextIdx := furthestEnemy.GetPathNodes()
+		last := path[lastIdx].ToVec2().Mul(64)
+		next := path[nextIdx].ToVec2().Mul(64)
+		pos := last.Lerp(next, float32(furthestEnemy.GetPathProgress()))
+		dirToEnemy := pos.Sub(t.position.ToVec2()).Normalize()
+		prj := NewProjectileBasic(
+			dirToEnemy,
+			t.position.ToVec2().Add(lib.NewVec2(32, 32)),
+			800.0,
+			16.0,
+		)
+		idx := pm.AddProjectile(prj)
+		prj.SelfIdx = idx
+
 	}
 
 	return nil
