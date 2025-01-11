@@ -45,6 +45,7 @@ type EntityGrid struct {
 	enemies     *lib.FreeList[*enemy.Enemy]
 	spatialHash *spatialhash.SpatialHash
 	towers      map[lib.Vec2I]towers.Tower
+	droppedMana int64
 
 	// Projectiles
 	projectiles *lib.FreeList[towers.Projectile]
@@ -117,6 +118,7 @@ func NewEntityGrid(
 		floorImage:    floorImage,
 		spatialHash:   spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
 		towers:        make(map[lib.Vec2I]towers.Tower),
+		droppedMana:   0,
 	}
 	return newEnt
 }
@@ -146,20 +148,20 @@ func (e *EntityGrid) Init(EntitySpawner) {
 	}
 }
 
+func (e *EntityGrid) SpawnEnemy(enType enemy.EnemyType) {
+	enem := enemy.NewEnemy(enType, 0, 1, 0.0)
+	enValue := enem.GetValue()
+	idx := e.enemies.Insert(enem)
+	enem.SetDestroyFunc(func() {
+		e.enemies.Remove(idx)
+		e.droppedMana += enValue
+	})
+}
+
 func (e *EntityGrid) Update(EntitySpawner) error {
 	e.spatialHash.Clear()
 
 	dt := lib.Dt()
-	e.REMOVE_enemyspawntimer += dt
-	if e.REMOVE_enemyspawntimer > 0.6 {
-		e.REMOVE_enemyspawntimer = 0
-		enem := enemy.NewEnemy(enemy.EnemyTypeBasic, 0, 1, 0.0)
-		// e.enemies = append(e.enemies, enem)
-		idx := e.enemies.Insert(enem)
-		enem.SetDestroyFunc(func() {
-			e.enemies.Remove(idx)
-		})
-	}
 
 	// Move Enemies
 	shElements := []*spatialhash.SHElement{}

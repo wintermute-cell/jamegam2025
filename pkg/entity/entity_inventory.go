@@ -3,8 +3,10 @@ package entity
 import (
 	"fmt"
 	"image/color"
+	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/towers"
+	"jamegam/pkg/wave_controller"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -21,8 +23,12 @@ type EntityItemPlaceholder struct {
 }
 
 type EntityInventory struct {
-	inventory [4]EntityItemPlaceholder
-	grid      *EntityGrid
+	inventory       [4]EntityItemPlaceholder
+	grid            *EntityGrid
+	waveController  *wavecontroller.WaveController
+	currentWave     []enemy.EnemyType
+	peace           bool
+	enemySpawnTimer float64
 
 	hoveredTile         lib.Vec2I
 	hoveredTileHasTower bool
@@ -85,6 +91,9 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		currentMana:         0,
 		maximumMana:         100,
 		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
+		waveController:      wavecontroller.NewWaveController(100),
+		peace:               true,
+		enemySpawnTimer:     0.0,
 	}
 	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(newEnt.basicTowerNumber)
 	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(newEnt.basicTowerNumber)
@@ -97,9 +106,29 @@ func (e *EntityInventory) Init(EntitySpawner) {
 func (e *EntityInventory) Update(EntitySpawner) error {
 	mouseX, mouseY := ebiten.CursorPosition()
 
+	if e.peace {
+		e.enemySpawnTimer = 0.0
+	} else {
+		dt := lib.Dt()
+		e.enemySpawnTimer += dt
+		if len(e.currentWave) > 0 {
+			if e.enemySpawnTimer > 0.5 {
+				e.enemySpawnTimer = 0
+				e.grid.SpawnEnemy(e.currentWave[0])
+				e.currentWave = e.currentWave[1:]
+			}
+		} else {
+			e.peace = true
+		}
+	}
+
+	e.currentMana += e.grid.droppedMana
+	e.grid.droppedMana = 0
+
 	// Hat Button
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
-		e.currentMana += 10
+		e.currentWave = e.waveController.GenerateNextWave()
+		e.peace = false
 	}
 
 	// Tower Buttons

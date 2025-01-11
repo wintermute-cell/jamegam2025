@@ -87,6 +87,18 @@ func (e *Enemy) SetSpeed(speed float32) {
 	e.currentSpeed = speed
 }
 
+func (e *Enemy) GetValue() int64 {
+	switch e.enemyType {
+	case EnemyTypeBasic:
+		return 1
+	case EnemyTypeFast:
+		return 2
+	case EnemyTypeTank:
+		return 4
+	}
+	return 0
+}
+
 func (e *Enemy) GetNumPassedNodes() float64 {
 	return e.numPassedNodes
 }
