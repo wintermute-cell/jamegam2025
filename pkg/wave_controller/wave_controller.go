@@ -61,7 +61,7 @@ func (e *WaveController) GenerateNextWave() []enemy.EnemyType {
 }
 
 func (e *WaveController) IncreaseResources() {
-	e.resources += int64(float64(e.resources) * 0.05)
+	e.resources += int64(float64(e.resources) * 0.1)
 	fmt.Printf("Next Wave Budget: %d", e.resources)
 }
 
