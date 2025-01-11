@@ -87,7 +87,7 @@ func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) ([]*enemy.Enemy,
 		last := e.enemyPath[lastIdx].ToVec2().Mul(float32(e.tilePixels))
 		next := e.enemyPath[nextIdx].ToVec2().Mul(float32(e.tilePixels))
 		pos := last.Lerp(next, float32(enemy.GetPathProgress()))
-		if pos.Dist(point) < float32(radius) {
+		if pos.Dist(point) < float32(radius)+32 {
 			ret = append(ret, enemy)
 		}
 	}
@@ -169,7 +169,7 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 	e.enemies.FuncAll(func(idx int, enemy *enemy.Enemy) {
 		lastIdx, nextIdx := enemy.GetPathNodes()
 		progress := enemy.GetPathProgress()
-		progress += 1.0 * dt
+		progress += float64(enemy.GetSpeed()) * dt
 		enemy.SetPathProgress(progress)
 
 		if progress >= 1.0 {
@@ -266,7 +266,7 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 		geom := ebiten.GeoM{}
 		geom.Scale(4, 4)
 		geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
-		screen.DrawImage(enemy.SpriteEnemyBasic, &ebiten.DrawImageOptions{
+		screen.DrawImage(enem.GetSprite(), &ebiten.DrawImageOptions{
 			GeoM: geom,
 		})
 

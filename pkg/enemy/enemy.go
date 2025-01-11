@@ -1,5 +1,12 @@
 package enemy
 
+import (
+	"jamegam/pkg/audio"
+	"log"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
+
 type EnemyType int
 
 const (
@@ -47,6 +54,20 @@ func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress 
 	return ret
 }
 
+func (e *Enemy) GetSprite() *ebiten.Image {
+	switch e.enemyType {
+	case EnemyTypeBasic:
+		return SpriteEnemyBasic
+	case EnemyTypeFast:
+		return SpriteEnemyFast
+	case EnemyTypeTank:
+		return SpriteEnemyTank
+	}
+
+	log.Fatal("Unknown enemy type")
+	return nil
+}
+
 func (e *Enemy) SetDestroyFunc(f func()) {
 	e.destroyFunc = f
 }
@@ -75,6 +96,7 @@ func (e *Enemy) GetHealth() int {
 func (e *Enemy) SetHealth(health int) {
 	e.currentHealth = health
 	if e.currentHealth <= 0 {
+		audio.Controller.Play("test_deathsound")
 		e.destroyFunc()
 	}
 }

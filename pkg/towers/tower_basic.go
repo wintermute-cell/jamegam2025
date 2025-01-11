@@ -1,6 +1,7 @@
 package towers
 
 import (
+	"jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 )
@@ -41,11 +42,11 @@ func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
 			dirToEnemy,
 			t.position.ToVec2().Add(lib.NewVec2(32, 32)),
 			800.0,
-			16.0,
+			8.0,
 		)
 		idx := pm.AddProjectile(prj)
 		prj.SelfIdx = idx
-
+		audio.Controller.Play("test_pew")
 	}
 
 	return nil

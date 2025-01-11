@@ -1,10 +1,10 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"jamegam/pkg/entity"
 	"jamegam/pkg/lib"
-	"log"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -62,7 +62,6 @@ pppppppppppppp.p
 
 // Update is part of the ebiten.Game interface.
 func (g *Game) Update() error {
-	log.Println("Update")
 	specialUpdate(g)
 	for _, entity := range g.entities {
 		if err := entity.Update(g); err != nil {
@@ -74,16 +73,24 @@ func (g *Game) Update() error {
 
 // Draw is part of the ebiten.Game interface.
 func (g *Game) Draw(screen *ebiten.Image) {
+	fakeScreen := ebiten.NewImage(1024, 896)
 	screen.Fill(color.Black)
-	ebitenutil.DebugPrint(screen, "Bye, World!")
+	fakeScreen.Fill(color.Black)
 	for _, entity := range g.entities {
-		entity.Draw(screen)
+		entity.Draw(fakeScreen)
 	}
+	ebitenutil.DebugPrint(fakeScreen, fmt.Sprintf("dt: %f", lib.Dt()))
+	geom := ebiten.GeoM{}
+	geom.Translate(20, 20)
+	screen.DrawImage(fakeScreen, &ebiten.DrawImageOptions{
+		GeoM: geom,
+	})
 }
 
 // Layout is part of the ebiten.Game interface.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return (g.tileConfig.width) * g.tileConfig.scale, (g.tileConfig.height + 2) * g.tileConfig.scale
+	// return (g.tileConfig.width)*g.tileConfig.scale + 40, (g.tileConfig.height+2)*g.tileConfig.scale + 40
+	return (outsideWidth), (outsideHeight)
 }
 
 // AddEntity adds an entity to the game

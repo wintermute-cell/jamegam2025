@@ -57,16 +57,16 @@ func (p *ProjectileBasic) Update(em EnemyManager, pm ProjectileManager) {
 	enemies, _ := em.GetEnemies(p.position, p.radius)
 	for _, e := range enemies {
 		newHealth := e.GetHealth() - p.damage
+		e.SetHealth(newHealth)
 		if newHealth <= 0 {
 			pm.RemoveProjectile(p.SelfIdx)
+			return
 		}
-		e.SetHealth(newHealth)
 	}
 
 }
 
 func (p *ProjectileBasic) Draw(screen *ebiten.Image) {
-	// vector.DrawFilledCircle(screen, float32(p.shBounds.Mx), float32(p.shBounds.My), 20, color.RGBA{255, 255, 0, 255}, false)
 	geom := ebiten.GeoM{}
 	geom.Translate(float64(p.position.X), float64(p.position.Y))
 	vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 5, color.RGBA{255, 255, 0, 255}, false)
