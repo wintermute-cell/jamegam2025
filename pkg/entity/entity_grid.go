@@ -2,7 +2,9 @@ package entity
 
 import (
 	"bufio"
+	"fmt"
 	"image/color"
+	"jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/spatialhash"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -34,6 +37,11 @@ type EntityGrid struct {
 
 	hoveredTile         lib.Vec2I
 	hoveredTileHasTower bool
+
+	messageTimer   float64
+	currentMessage string
+
+	textFace *text.GoTextFace
 
 	// Map & Path
 	mapDef    string
@@ -106,6 +114,11 @@ func NewEntityGrid(
 	lib.Must(err)
 	floorImage, _, err := ebitenutil.NewImageFromFile("test_floor.png")
 	lib.Must(err)
+	arialFile, err := ebitenutil.OpenFile("Arial.ttf")
+	lib.Must(err)
+	textFaceSource, err := text.NewGoTextFaceSource(arialFile)
+	lib.Must(err)
+
 	newEnt := &EntityGrid{
 		xTiles:        xTiles,
 		yTiles:        yTiles,
@@ -117,6 +130,7 @@ func NewEntityGrid(
 		platformImage: platformImage,
 		floorImage:    floorImage,
 		spatialHash:   spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
+		textFace:      &text.GoTextFace{Source: textFaceSource, Size: 24},
 		towers:        make(map[lib.Vec2I]towers.Tower),
 		droppedMana:   0,
 	}
@@ -158,7 +172,20 @@ func (e *EntityGrid) SpawnEnemy(enType enemy.EnemyType) {
 	})
 }
 
+func (e *EntityGrid) ShowMessage(message string) {
+	audio.Controller.Play("audio")
+	e.currentMessage = message
+	e.messageTimer = 3.0
+}
+
 func (e *EntityGrid) Update(EntitySpawner) error {
+
+	e.messageTimer -= lib.Dt()
+	if e.messageTimer <= 0 {
+		e.messageTimer = -2
+		e.currentMessage = ""
+	}
+
 	e.spatialHash.Clear()
 
 	dt := lib.Dt()
@@ -282,6 +309,16 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	e.projectiles.FuncAll(func(_ int, projectile towers.Projectile) {
 		projectile.Draw(screen)
 	})
+
+	// Draw Message
+	if e.messageTimer > -0.5 {
+		geom := ebiten.GeoM{}
+		geom.Translate(10, (12*64)-34)
+		vector.DrawFilledRect(screen, 5, 12*64-39, 16*64-10, 34, color.RGBA{0, 0, 0, 160}, false)
+		text.Draw(screen, fmt.Sprintf("%v", e.currentMessage), e.textFace, &text.DrawOptions{
+			DrawImageOptions: ebiten.DrawImageOptions{GeoM: geom},
+		})
+	}
 }
 
 func drawGridLine(screen *ebiten.Image, x, y, tilePixels int) {

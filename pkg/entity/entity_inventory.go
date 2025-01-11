@@ -95,7 +95,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		waveController:      wavecontroller.NewWaveController(100),
 		peace:               true,
 		enemySpawnTimer:     0.0,
-		currentCurrency:     10_000, // TODO: remove this
+		currentCurrency:     1_000, // TODO: remove this
 	}
 	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(int(towers.TowerTypeBasic))
 	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(int(towers.TowerTypeBasic))
@@ -149,13 +149,25 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	_, e.hoveredTileHasTower = e.grid.towers[e.hoveredTile]
 	if e.towerSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			var tower towers.Tower = nil
 			switch e.towerSelected {
 			case towers.TowerTypeBasic:
-				tower := towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
-				e.grid.towers[e.hoveredTile] = tower
+				tower = towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
 				//case towers.TowerType...:
 			}
+			if tower != nil {
+				if e.currentCurrency >= tower.Price() {
+					e.currentCurrency -= tower.Price()
+					e.grid.towers[e.hoveredTile] = tower
+				} else {
+					e.grid.ShowMessage(fmt.Sprintf("Not enough currency to place tower. Need %d", tower.Price()))
+				}
+			}
 		}
+	} else if e.hoveredTileHasTower && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
+		e.grid.ShowMessage("Can't place tower here, there is already a tower.")
+	} else if e.hoveredTileIsOnPath && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
+		e.grid.ShowMessage("Can't place tower on the path.")
 	}
 
 	return nil

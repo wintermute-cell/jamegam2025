@@ -10,6 +10,7 @@ import (
 type Tower interface {
 	Update(EnemyManager, ProjectileManager) error
 	Draw(screen *ebiten.Image)
+	Price() int64
 }
 
 type EnemyManager interface {

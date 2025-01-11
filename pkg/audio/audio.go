@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"jamegam/pkg/lib"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
@@ -24,6 +25,7 @@ func init() {
 	}
 
 	sounds := []string{
+		"audio",
 		"test_pew",
 		"test_deathsound",
 	}
@@ -44,6 +46,9 @@ func (a *AudioController) loadSound(name string) {
 }
 
 func (a *AudioController) Play(sound string) {
+	if _, ok := a.sounds[sound]; !ok {
+		log.Printf("Sound %s not loaded", sound)
+	}
 	for _, player := range a.soundPlayers[sound] {
 		if !player.IsPlaying() {
 			player.Rewind()

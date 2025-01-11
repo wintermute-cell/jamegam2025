@@ -18,6 +18,10 @@ func NewTowerBasic(position lib.Vec2I) *TowerBasic {
 	}
 }
 
+func (t *TowerBasic) Price() int64 {
+	return 100
+}
+
 // Update implements Tower.
 func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
 	enemies, path := em.GetEnemies(t.position.ToVec2(), t.radius)
