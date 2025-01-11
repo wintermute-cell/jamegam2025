@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"image/color"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/towers"
@@ -8,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -28,6 +30,9 @@ type EntityInventory struct {
 
 	tilePixels int
 
+	currentMana int64
+	maximumMana int64
+
 	// Tower Buttons
 	towerSelected         int
 	basicTowerNumber      int
@@ -37,6 +42,8 @@ type EntityInventory struct {
 	// Resources
 	inventorySlotImage *ebiten.Image
 	basicTowerImage    *ebiten.Image
+	hatImage           *ebiten.Image
+	textFace           *text.GoTextFace
 }
 
 func isInBounds(vect lib.Vec2I) bool {
@@ -57,16 +64,27 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	basicTowerImage, _, err := ebitenutil.NewImageFromFile("test_tower.png")
 	lib.Must(err)
+	hatImage, _, err := ebitenutil.NewImageFromFile("test_hat.png")
+	lib.Must(err)
+	arialFile, err := ebitenutil.OpenFile("Arial.ttf")
+	lib.Must(err)
+	textFaceSource, err := text.NewGoTextFaceSource(arialFile)
+	lib.Must(err)
+
 	newEnt := &EntityInventory{
 		tilePixels:          tilePixels,
 		inventorySlotImage:  inventorySlotImage,
 		basicTowerImage:     basicTowerImage,
+		hatImage:            hatImage,
 		inventory:           [4]EntityItemPlaceholder{},
 		grid:                grid,
 		hoveredTileHasTower: false,
 		hoveredTileIsOnPath: false,
 		towerSelected:       0,
 		basicTowerNumber:    1,
+		currentMana:         0,
+		maximumMana:         100,
+		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
 	}
 	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(newEnt.basicTowerNumber)
 	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(newEnt.basicTowerNumber)
@@ -78,6 +96,11 @@ func (e *EntityInventory) Init(EntitySpawner) {
 
 func (e *EntityInventory) Update(EntitySpawner) error {
 	mouseX, mouseY := ebiten.CursorPosition()
+
+	// Hat Button
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
+		e.currentMana += 10
+	}
 
 	// Tower Buttons
 	if isInButton(mouseX, mouseY, e.basicTowerButton) && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -138,6 +161,28 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomBack.Translate(10, float64(12*e.tilePixels)+10)
 	screen.DrawImage(background, &ebiten.DrawImageOptions{GeoM: geomBack})
 
+	// Hat
+	geomHat := ebiten.GeoM{}
+	geomHat.Scale(4, 4)
+	geomHat.Translate(float64(7*e.tilePixels+e.tilePixels/2), float64(12*e.tilePixels+e.tilePixels/4))
+	screen.DrawImage(e.hatImage, &ebiten.DrawImageOptions{GeoM: geomHat})
+
+	// Hat Percentage
+	manaPercentage := int(float32(e.currentMana) / float32(e.maximumMana) * 100.0)
+	hatTextOptions := &text.DrawOptions{}
+	hatTextOptions.GeoM.Translate(float64(7*e.tilePixels+5*e.tilePixels/8), float64(13*e.tilePixels+e.tilePixels/8))
+
+	hatTextOptions.ColorScale.Scale(0.5, 1.0, 0.5, 1.0)
+	if manaPercentage >= 50 && manaPercentage < 75 {
+		hatTextOptions.ColorScale.Reset()
+		hatTextOptions.ColorScale.Scale(1.0, 1.0, 0.0, 1.0)
+	} else if manaPercentage >= 75 {
+		hatTextOptions.ColorScale.Reset()
+		hatTextOptions.ColorScale.Scale(1.0, 0.0, 0.0, 1.0)
+	}
+
+	text.Draw(screen, fmt.Sprintf("%03d%%", manaPercentage), e.textFace, hatTextOptions)
+
 	// Items
 	for index, _ := range e.inventory {
 		geomItem := ebiten.GeoM{}
@@ -186,4 +231,10 @@ func (e *EntityInventory) highlightButton(button lib.Vec2, col color.RGBA, scree
 		col,
 		false,
 	)
+}
+
+func (e *EntityInventory) isInHatButton(mouseX int, mouseY int) bool {
+	hatButtonX := int(7*e.tilePixels + e.tilePixels/2)
+	hatButtonY := int(12*e.tilePixels + e.tilePixels/4)
+	return mouseX >= hatButtonX && mouseX < hatButtonX+e.tilePixels && mouseY >= hatButtonY && mouseY < hatButtonY+5*e.tilePixels/4
 }
