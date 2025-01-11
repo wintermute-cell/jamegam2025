@@ -46,15 +46,15 @@ type EntityInventory struct {
 	currentCurrency int64
 
 	// Tower Buttons
-	towerSelected         towers.TowerType
-	basicTowerButton      lib.Vec2
-	basicTowerButtonImage lib.Vec2
+	towerSelected    towers.TowerType
+	basicTowerButton lib.Vec2I
 
 	// Resources
 	inventorySlotImage *ebiten.Image
 	basicTowerImage    *ebiten.Image
 	hatImage           *ebiten.Image
 	textFace           *text.GoTextFace
+	inventoryBarImage  *ebiten.Image
 }
 
 func isInBounds(vect lib.Vec2I) bool {
@@ -81,6 +81,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	textFaceSource, err := text.NewGoTextFaceSource(arialFile)
 	lib.Must(err)
+	inventoryBarImage, _, err := ebitenutil.NewImageFromFile("menu_bar_1024x246.png")
 
 	newEnt := &EntityInventory{
 		tilePixels:           tilePixels,
@@ -102,9 +103,9 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		currentCurrency:      1_000, // TODO: remove this
 		waveCounter:          0,
 		turretRangeIndicator: true,
+		inventoryBarImage:    inventoryBarImage,
 	}
-	newEnt.basicTowerButton = newEnt.getTowerButtonPosition(int(towers.TowerTypeBasic))
-	newEnt.basicTowerButtonImage = newEnt.getTowerButtonIconPosition(int(towers.TowerTypeBasic))
+	newEnt.basicTowerButton = lib.NewVec2I(2, 1)
 	return newEnt
 }
 
@@ -164,7 +165,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	}
 
 	// Tower Buttons
-	if isInButton(mouseX, mouseY, e.basicTowerButton) && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
 		if e.towerSelected == towers.TowerTypeBasic {
 			e.towerSelected = towers.TowerTypeNone
 		} else {
@@ -233,17 +234,9 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	}
 
 	// Inventory Bar
-	border := ebiten.NewImage(16*e.tilePixels, 2*e.tilePixels)
-	border.Fill(color.RGBA{120, 120, 120, 255})
 	geomBord := ebiten.GeoM{}
 	geomBord.Translate(0, float64(12*e.tilePixels))
-	screen.DrawImage(border, &ebiten.DrawImageOptions{GeoM: geomBord})
-
-	background := ebiten.NewImage(16*e.tilePixels-20, 2*e.tilePixels-20)
-	background.Fill(color.RGBA{40, 40, 40, 255})
-	geomBack := ebiten.GeoM{}
-	geomBack.Translate(10, float64(12*e.tilePixels)+10)
-	screen.DrawImage(background, &ebiten.DrawImageOptions{GeoM: geomBack})
+	screen.DrawImage(e.inventoryBarImage, &ebiten.DrawImageOptions{GeoM: geomBord})
 
 	// Hat
 	geomHat := ebiten.GeoM{}
@@ -275,31 +268,38 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 
 	// Items
 	for index, _ := range e.inventory {
+		itemPosition := e.getButtonPosition(lib.NewVec2I(index+5, 0))
 		geomItem := ebiten.GeoM{}
-		geomItem.Scale(6, 6)
-		geomItem.Translate(float64(index*e.tilePixels+index*e.tilePixels/2+e.tilePixels/4), float64(12*e.tilePixels+e.tilePixels/4))
+		geomItem.Scale(4, 4)
+		geomItem.Translate(float64(itemPosition.X), float64(itemPosition.Y))
 		screen.DrawImage(e.inventorySlotImage, &ebiten.DrawImageOptions{GeoM: geomItem})
 	}
 
-	// Towers
-	geomT1bg := ebiten.GeoM{}
-	geomT1bg.Scale(6, 6)
-	geomT1bg.Translate(float64(e.basicTowerButton.X), float64(e.basicTowerButton.Y))
-	screen.DrawImage(e.inventorySlotImage, &ebiten.DrawImageOptions{GeoM: geomT1bg})
+	// Tower Buttons
+	for i := 2; i < 7; i++ {
+		towerButtonPosition := e.getButtonPosition(lib.NewVec2I(i, 1))
+		geomT1bg := ebiten.GeoM{}
+		geomT1bg.Scale(4, 4)
+		geomT1bg.Translate(float64(towerButtonPosition.X), float64(towerButtonPosition.Y))
+		screen.DrawImage(e.inventorySlotImage, &ebiten.DrawImageOptions{GeoM: geomT1bg})
+	}
+
+	// Tower Button Icons
+	basicTowerImgPos := e.getButtonTowerIconPosition(e.basicTowerButton)
 	geomT1im := ebiten.GeoM{}
 	geomT1im.Scale(4, 4)
-	geomT1im.Translate(float64(e.basicTowerButtonImage.X), float64(e.basicTowerButtonImage.Y))
+	geomT1im.Translate(float64(basicTowerImgPos.X), float64(basicTowerImgPos.Y))
 	screen.DrawImage(e.basicTowerImage, &ebiten.DrawImageOptions{GeoM: geomT1im})
 
 	// Select Tower
 	buttonOutline := color.RGBA{100, 255, 100, 255}
 
 	if e.towerSelected == towers.TowerTypeBasic {
-		e.highlightButton(e.basicTowerButton, buttonOutline, screen)
+		e.highlightButton(e.getButtonPosition(e.basicTowerButton), buttonOutline, screen)
 	}
 
 	// Buttons
-	for i := 0; i < 9; i++ {
+	for i := 0; i < 4; i++ {
 		buttonPos := e.getButtonPosition(lib.NewVec2I(i, 0))
 		buttonImgOptions := &ebiten.DrawImageOptions{}
 		buttonImgOptions.GeoM.Scale(4, 4)
@@ -309,22 +309,14 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 
 }
 
-func (e *EntityInventory) getTowerButtonPosition(buttonNumber int) lib.Vec2 {
-	return lib.NewVec2(float32(16*e.tilePixels-buttonNumber*(7*e.tilePixels/4)), float32(12*e.tilePixels+e.tilePixels/4))
+func isInButton(mouseX int, mouseY int, button lib.Vec2I) bool {
+	return mouseX >= button.X && mouseX < button.X+96 && mouseY >= button.Y && mouseY < button.Y+96
 }
 
-func (e *EntityInventory) getTowerButtonIconPosition(buttonNumber int) lib.Vec2 {
-	return lib.NewVec2(float32(16*e.tilePixels-(buttonNumber-1)*(7*e.tilePixels/4)-(6*e.tilePixels/4)), float32(12*e.tilePixels+e.tilePixels/2))
-}
-
-func isInButton(mouseX int, mouseY int, button lib.Vec2) bool {
-	return mouseX >= int(button.X) && mouseX < int(button.X+96) && mouseY >= int(button.Y) && mouseY < int(button.Y+96)
-}
-
-func (e *EntityInventory) highlightButton(button lib.Vec2, col color.RGBA, screen *ebiten.Image) {
+func (e *EntityInventory) highlightButton(button lib.Vec2I, col color.RGBA, screen *ebiten.Image) {
 	vector.StrokeRect(screen,
-		button.X,
-		button.Y,
+		float32(button.X),
+		float32(button.Y),
 		float32(96),
 		float32(96),
 		3.0,
@@ -352,6 +344,12 @@ func (e *EntityInventory) ToggleTowerIndicator() {
 func (e *EntityInventory) getButtonPosition(position lib.Vec2I) lib.Vec2I {
 	buttonPos := lib.NewVec2I(0, 0)
 	buttonPos.X = int(24 + position.X*(e.buttonPixels+14))
-	buttonPos.Y = int(12*e.tilePixels + 18 + position.Y*(e.buttonPixels+10))
+	buttonPos.Y = int(12*e.tilePixels + 18 + position.Y*(e.buttonPixels+18))
 	return buttonPos
+}
+
+func (e *EntityInventory) getButtonTowerIconPosition(position lib.Vec2I) lib.Vec2I {
+	buttonPos := e.getButtonPosition(position)
+	iconPos := lib.NewVec2I(buttonPos.X+16, buttonPos.Y+16)
+	return iconPos
 }

@@ -73,7 +73,7 @@ func (g *Game) Update() error {
 
 // Draw is part of the ebiten.Game interface.
 func (g *Game) Draw(screen *ebiten.Image) {
-	fakeScreen := ebiten.NewImage(1024, 896)
+	fakeScreen := ebiten.NewImage(1024, 1024)
 	screen.Fill(color.Black)
 	fakeScreen.Fill(color.Black)
 	for _, entity := range g.entities {
