@@ -19,12 +19,31 @@ import (
 // Ensure EntityInventory implements Entity
 var _ Entity = &EntityInventory{}
 
-// TODO: Replace with real EntityItem later
-type EntityItemPlaceholder struct {
+type ItemSlot struct {
+	ItemType   Item
+	IsSelected bool
 }
 
+type Item int64
+
+const (
+	NoItem Item = iota
+	BasicTower
+	TackTower
+	IceTower
+	AoeTower
+	ManaTower
+	FreeUpgrade
+	MaxUpgrade
+	CurrencyGift
+	SpikeTrap
+	ClearEnemies
+	DamageBuff
+	SpeedBuff
+)
+
 type EntityInventory struct {
-	inventory       [4]EntityItemPlaceholder
+	inventory       [4]ItemSlot
 	grid            *EntityGrid
 	waveController  *wavecontroller.WaveController
 	currentWave     []enemy.EnemyType
@@ -120,15 +139,19 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 
 	newEnt := &EntityInventory{
-		tilePixels:            tilePixels,
-		buttonPixels:          96,
-		inventorySlotImage:    inventorySlotImage,
-		basicTowerImage:       basicTowerImage,
-		tackTowerImage:        tackTowerImage,
-		iceTowerImage:         iceTowerImage,
-		aoeTowerImage:         aoeTowerImage,
-		hatImage:              hatImage,
-		inventory:             [4]EntityItemPlaceholder{},
+		tilePixels:         tilePixels,
+		buttonPixels:       96,
+		inventorySlotImage: inventorySlotImage,
+		basicTowerImage:    basicTowerImage,
+		tackTowerImage:     tackTowerImage,
+		iceTowerImage:      iceTowerImage,
+		aoeTowerImage:      aoeTowerImage,
+		hatImage:           hatImage,
+		inventory: [4]ItemSlot{
+			ItemSlot{ItemType: NoItem, IsSelected: false},
+			ItemSlot{ItemType: NoItem, IsSelected: false},
+			ItemSlot{ItemType: NoItem, IsSelected: false},
+			ItemSlot{ItemType: NoItem, IsSelected: false}},
 		grid:                  grid,
 		hoveredTileHasTower:   false,
 		hoveredTileIsOnPath:   false,
@@ -614,4 +637,45 @@ func (e *EntityInventory) UpgradeSelectedTowerDamage() {
 
 func (e *EntityInventory) isTowerSelected() bool {
 	return e.grid.selectedTower.X != -1 && e.grid.selectedTower.Y != -1
+}
+
+func (e *EntityInventory) ActivateItem(itemSlot ItemSlot) {
+	switch itemSlot.ItemType {
+	case NoItem:
+		return
+	case BasicTower:
+		return
+	case TackTower:
+		return
+	case IceTower:
+		return
+	case AoeTower:
+		return
+	case ManaTower:
+		return
+	case FreeUpgrade:
+		return
+	case MaxUpgrade:
+		return
+	case CurrencyGift:
+		return
+	case SpikeTrap:
+		return
+	case ClearEnemies:
+		return
+	case DamageBuff:
+		return
+	case SpeedBuff:
+		return
+	}
+}
+
+func (e *EntityInventory) RemoveItem(itemSlotNumber int) {
+	for i := itemSlotNumber; i < 4; i++ {
+		if i == 3 {
+			e.inventory[i] = ItemSlot{ItemType: NoItem, IsSelected: false}
+			return
+		}
+
+	}
 }
