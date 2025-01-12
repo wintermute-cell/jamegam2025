@@ -1016,3 +1016,7 @@ func (e *EntityInventory) GenerateRandomItem(rarity ItemRarity) {
 		e.AddItem(items[rand.Intn(len(items))])
 	}
 }
+
+func (e *EntityInventory) RestartGame() {
+
+}

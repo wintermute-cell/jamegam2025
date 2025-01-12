@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"image/color"
+
 	// "jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
@@ -40,6 +41,8 @@ type EntityGrid struct {
 
 	hoveredTile         lib.Vec2I
 	hoveredTileHasTower bool
+
+	Health int
 
 	messageTimer   float64
 	currentMessage string
@@ -172,6 +175,7 @@ func NewEntityGrid(
 		droppedMana:         0,
 		towerRangeIndicator: true,
 		selectedTower:       lib.NewVec2I(-1, -1),
+		Health:              100,
 	}
 	return newEnt
 }
@@ -242,7 +246,8 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 			progress = 0
 			if nextIdx == len(e.enemyPath)-1 {
 				log.Println("Enemy reached the end")
-				panic("unimplemented")
+				e.Health--
+
 			}
 			enemy.SetPathNodes(lastIdx+1, nextIdx+1)
 			enemy.SetPathProgress(progress)
