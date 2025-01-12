@@ -51,7 +51,7 @@ func (t *TowerTacks) Update(em EnemyManager, pm ProjectileManager) error {
 			idx := pm.AddProjectile(prj)
 			prj.SelfIdx = idx
 		}
-		audio.Controller.Play("test_pew")
+		audio.Controller.Play("test_pew", 0)
 	}
 
 	return nil

@@ -39,7 +39,7 @@ func (t *TowerIce) Update(em EnemyManager, pm ProjectileManager) error {
 		for _, e := range hitEnemies {
 			e.SetSpeedMod(speedMod, 2)
 		}
-		audio.Controller.Play("test_pew")
+		audio.Controller.Play("test_pew", 0)
 	}
 
 	return nil

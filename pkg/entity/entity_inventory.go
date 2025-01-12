@@ -51,6 +51,7 @@ type EntityInventory struct {
 	tackTowerButton   lib.Vec2I
 	iceTowerButton    lib.Vec2I
 	aoeTowerButton    lib.Vec2I
+	cashTowerButton   lib.Vec2I
 	blueprintSelected towers.TowerType
 
 	// Menu Buttons
@@ -101,7 +102,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	hatImage, _, err := ebitenutil.NewImageFromFile("test_hat.png")
 	lib.Must(err)
-	arialFile, err := ebitenutil.OpenFile("Arial.ttf")
+	arialFile, err := ebitenutil.OpenFile("font.ttf")
 	lib.Must(err)
 	textFaceSource, err := text.NewGoTextFaceSource(arialFile)
 	lib.Must(err)
@@ -134,7 +135,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		blueprintSelected:     0,
 		currentMana:           0,
 		maximumMana:           500,
-		textFace:              &text.GoTextFace{Source: textFaceSource, Size: 24},
+		textFace:              &text.GoTextFace{Source: textFaceSource, Size: 20},
 		waveController:        wavecontroller.NewWaveController(100),
 		peace:                 true,
 		enemySpawnTimer:       0.0,
@@ -151,6 +152,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		tackTowerButton:       lib.NewVec2I(3, 1),
 		iceTowerButton:        lib.NewVec2I(4, 1),
 		aoeTowerButton:        lib.NewVec2I(5, 1),
+		cashTowerButton:       lib.NewVec2I(6, 1),
 		playButton:            lib.NewVec2I(0, 0),
 		removeButton:          lib.NewVec2I(1, 0),
 		damageButton:          lib.NewVec2I(2, 0),
@@ -223,6 +225,8 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			e.selectTowerType(towers.TowerTypeIce)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.aoeTowerButton)) {
 			e.selectTowerType(towers.TowerTypeAoe)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.cashTowerButton)) {
+			e.selectTowerType(towers.TowerTypeCash)
 		}
 	}
 
@@ -235,6 +239,8 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		e.selectTowerType(towers.TowerTypeIce)
 	} else if inpututil.IsKeyJustPressed(ebiten.Key4) {
 		e.selectTowerType(towers.TowerTypeAoe)
+	} else if inpututil.IsKeyJustPressed(ebiten.Key5) {
+		e.selectTowerType(towers.TowerTypeCash)
 	}
 
 	// Tower Placement
@@ -253,6 +259,8 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				tower = towers.NewTowerIce(e.hoveredTile.Mul(e.tilePixels))
 			case towers.TowerTypeAoe:
 				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
+			case towers.TowerTypeCash:
+				tower = towers.NewTowerCash(e.hoveredTile.Mul(e.tilePixels))
 				// case towers.TowerType...:
 			}
 			if tower != nil {
@@ -410,6 +418,12 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomT4im.Scale(4, 4)
 	geomT4im.Translate(float64(aoeTowerImgPos.X), float64(aoeTowerImgPos.Y))
 	screen.DrawImage(e.aoeTowerImage, &ebiten.DrawImageOptions{GeoM: geomT4im})
+	// Cash Tower
+	cashTowerImgPos := e.getButtonTowerIconPosition(e.cashTowerButton)
+	geomT5im := ebiten.GeoM{}
+	geomT5im.Scale(4, 4)
+	geomT5im.Translate(float64(cashTowerImgPos.X), float64(cashTowerImgPos.Y))
+	screen.DrawImage(e.aoeTowerImage, &ebiten.DrawImageOptions{GeoM: geomT5im})
 
 	// Select Tower
 	buttonOutline := color.RGBA{100, 255, 100, 255}
@@ -422,6 +436,8 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 		e.highlightButton(e.getButtonPosition(e.iceTowerButton), buttonOutline, screen)
 	} else if e.blueprintSelected == towers.TowerTypeAoe {
 		e.highlightButton(e.getButtonPosition(e.aoeTowerButton), buttonOutline, screen)
+	} else if e.blueprintSelected == towers.TowerTypeCash {
+		e.highlightButton(e.getButtonPosition(e.cashTowerButton), buttonOutline, screen)
 	}
 
 	// Menu Buttons

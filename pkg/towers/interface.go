@@ -21,6 +21,7 @@ type Tower interface {
 
 type EnemyManager interface {
 	GetEnemies(point lib.Vec2, radius float32) ([]*enemy.Enemy, []lib.Vec2I)
+	AddMana(int64)
 }
 
 type ProjectileManager interface {
@@ -36,4 +37,5 @@ const (
 	TowerTypeTacks
 	TowerTypeIce
 	TowerTypeAoe
+	TowerTypeCash
 )

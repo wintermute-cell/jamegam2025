@@ -72,6 +72,11 @@ type EntityGrid struct {
 	REMOVE_enemyspawntimer float64
 }
 
+// AddMana implements towers.EnemyManager.
+func (e *EntityGrid) AddMana(mana int64) {
+	e.droppedMana += mana
+}
+
 // AddProjectile implements towers.ProjectileManager.
 func (e *EntityGrid) AddProjectile(projectile towers.Projectile) int {
 	return e.projectiles.Insert(projectile)
@@ -121,7 +126,7 @@ func NewEntityGrid(
 	lib.Must(err)
 	floorImage, _, err := ebitenutil.NewImageFromFile("test_floor.png")
 	lib.Must(err)
-	arialFile, err := ebitenutil.OpenFile("Arial.ttf")
+	arialFile, err := ebitenutil.OpenFile("font.ttf")
 	lib.Must(err)
 	textFaceSource, err := text.NewGoTextFaceSource(arialFile)
 	lib.Must(err)
@@ -137,7 +142,7 @@ func NewEntityGrid(
 		platformImage:       platformImage,
 		floorImage:          floorImage,
 		spatialHash:         spatialhash.NewSpatialHash(100_000, int32(tilePixels), 50_000),
-		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 24},
+		textFace:            &text.GoTextFace{Source: textFaceSource, Size: 20},
 		towers:              make(map[lib.Vec2I]towers.Tower),
 		droppedMana:         0,
 		towerRangeIndicator: true,
@@ -182,7 +187,7 @@ func (e *EntityGrid) SpawnEnemy(enType enemy.EnemyType) {
 }
 
 func (e *EntityGrid) ShowMessage(message string) {
-	audio.Controller.Play("audio")
+	audio.Controller.Play("audio", 0.1)
 	e.currentMessage = message
 	e.messageTimer = 3.0
 }
