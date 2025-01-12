@@ -502,9 +502,13 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	// Wave Display
 	geomWave := ebiten.GeoM{}
 	geomWave.Translate(float64(20), float64(12*e.tilePixels+118+16))
-	text.Draw(screen, fmt.Sprintf("Wave: %d", e.waveCounter), e.textFace, &text.DrawOptions{
-		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomWave},
-	})
+	waveDisplayOptions := &text.DrawOptions{DrawImageOptions: ebiten.DrawImageOptions{
+		GeoM: geomWave,
+	}}
+	if !e.peace {
+		waveDisplayOptions.ColorScale.Scale(1.0, 0.0, 0.0, 1.0)
+	}
+	text.Draw(screen, fmt.Sprintf("Wave: %d", e.waveCounter), e.textFace, waveDisplayOptions)
 
 	// Health Display
 	geomHealth := ebiten.GeoM{}
