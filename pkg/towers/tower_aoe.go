@@ -49,6 +49,7 @@ func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 			12.0,
 			0.45,
 			50,
+			int(1*t.damageUpgrades+1),
 		)
 		idx := pm.AddProjectile(prj)
 		prj.SelfIdx = idx

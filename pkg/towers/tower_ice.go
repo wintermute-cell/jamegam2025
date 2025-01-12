@@ -36,8 +36,9 @@ func (t *TowerIce) Update(em EnemyManager, pm ProjectileManager) error {
 	// TODO: if there is an ememy in range...
 	if len(hitEnemies) > 0 && t.ShouldFire(lib.Dt()) {
 		// Spawn projectiles in a circle around the tower
+		speedMod := float32(0.5 - (0.05 * float64(t.speedUpgrades+t.damageUpgrades)))
 		for _, e := range hitEnemies {
-			e.SetSpeedMod(0.5, 2)
+			e.SetSpeedMod(speedMod, 2)
 		}
 		audio.Controller.Play("test_pew")
 	}

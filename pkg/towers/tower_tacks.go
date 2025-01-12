@@ -47,6 +47,7 @@ func (t *TowerTacks) Update(em EnemyManager, pm ProjectileManager) error {
 				800.0,
 				12.0,
 				0.13,
+				int(1*t.damageUpgrades+1),
 			)
 			idx := pm.AddProjectile(prj)
 			prj.SelfIdx = idx

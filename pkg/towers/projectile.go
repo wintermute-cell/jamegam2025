@@ -30,14 +30,14 @@ type ProjectileBasic struct {
 	damage      int
 }
 
-func NewProjectileBasic(direction, position lib.Vec2, speed float32, radius float32, maxLifetime float32) *ProjectileBasic {
+func NewProjectileBasic(direction, position lib.Vec2, speed float32, radius float32, maxLifetime float32, damage int) *ProjectileBasic {
 	p := &ProjectileBasic{
 		direction:   direction,
 		speed:       speed,
 		position:    position,
 		radius:      radius,
 		maxLifetime: maxLifetime,
-		damage:      1,
+		damage:      damage,
 	}
 	return p
 }
@@ -95,7 +95,7 @@ type ProjectileExplosive struct {
 	explodingTimer  float32
 }
 
-func NewProjectileExplosive(direction, position lib.Vec2, speed float32, radius float32, maxLifetime float32, explosionRadius float32) *ProjectileExplosive {
+func NewProjectileExplosive(direction, position lib.Vec2, speed float32, radius float32, maxLifetime float32, explosionRadius float32, damage int) *ProjectileExplosive {
 	p := &ProjectileExplosive{
 		direction:       direction,
 		speed:           speed,
@@ -103,7 +103,7 @@ func NewProjectileExplosive(direction, position lib.Vec2, speed float32, radius 
 		radius:          radius,
 		maxLifetime:     maxLifetime,
 		explosionRadius: explosionRadius,
-		damage:          1,
+		damage:          damage,
 	}
 	return p
 }
