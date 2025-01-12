@@ -795,27 +795,46 @@ func (e *EntityInventory) ActivateItem(itemNumber int) {
 	case BombTrap:
 	case ClearEnemies:
 	case DamageBuffSmall:
+		e.DamageBuff(1, itemNumber)
 	case DamageBuffMedium:
+		e.DamageBuff(2, itemNumber)
 	case SpeedBuffSmall:
+		e.SpeedBuff(1, itemNumber)
 	case SpeedBuffMedium:
+		e.SpeedBuff(2, itemNumber)
 	}
 }
 
 func (e *EntityInventory) DamageBuff(level int, itemNumber int) {
 	damageModifier := 1
-	damageDuration := 60.0
+	damageDuration := 60
 	switch level {
 	case 1:
 		damageModifier = 2
-		damageDuration = 60.0
+		damageDuration = 60
 	case 2:
 		damageModifier = 3
-		damageDuration := 120
+		damageDuration = 120
 	}
+	e.grid.BuffAllTowersDamage(float32(damageModifier), float32(damageDuration))
+	e.RemoveItem(itemNumber)
+	e.grid.ShowMessage(fmt.Sprintf("Activated Level %d damage buff for %d seconds!", level, damageDuration))
 }
 
 func (e *EntityInventory) SpeedBuff(level int, itemNumber int) {
-
+	speedModifier := 1.0
+	speedDuration := 60
+	switch level {
+	case 1:
+		speedModifier = 0.8
+		speedDuration = 60
+	case 2:
+		speedModifier = 0.6
+		speedDuration = 120
+	}
+	e.grid.BuffAllTowersSpeed(float32(speedModifier), float32(speedDuration))
+	e.RemoveItem(itemNumber)
+	e.grid.ShowMessage(fmt.Sprintf("Activated Level %d speed buff for %d seconds!", level, speedDuration))
 }
 
 func (e *EntityInventory) CurrencyGift(level int, itemNumber int) {
