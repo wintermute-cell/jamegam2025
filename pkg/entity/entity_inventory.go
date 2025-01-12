@@ -19,6 +19,14 @@ import (
 // Ensure EntityInventory implements Entity
 var _ Entity = &EntityInventory{}
 
+type ItemRarity int64
+
+const (
+	CommonItem ItemRarity = iota
+	RareItem
+	LegendaryItem
+)
+
 type Item int64
 
 const (
@@ -150,7 +158,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		aoeTowerImage:         aoeTowerImage,
 		cashTowerImage:        cashTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{BasicTower, IceTower, FreeUpgrade, CurrencyGift},
+		inventory:             [4]Item{NoItem, NoItem, NoItem, NoItem},
 		selectedItem:          -1,
 		grid:                  grid,
 		hoveredTileHasTower:   false,
@@ -227,18 +235,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 
 	// Hat Button
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
-		manaPercentage := int(float32(e.currentMana) / float32(e.maximumMana) * 100)
-		var newCurrency int64 = 0
-		if manaPercentage < 50 {
-			newCurrency += int64(float64(e.currentMana) * 5.0 * 1.0)
-		} else if manaPercentage < 75 {
-			newCurrency += int64(float64(e.currentMana) * 5.0 * 1.5)
-		} else {
-			newCurrency += int64(float64(e.currentMana) * 5.0 * 2.0)
-		}
-		e.currentCurrency += newCurrency
-		e.currentMana = 0
-		e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
+		e.ActivateHat()
 	}
 
 	// Item Buttons
@@ -414,16 +411,19 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	manaPercentage := int(float32(e.currentMana) / float32(e.maximumMana) * 100.0)
 	hatTextOptions := &text.DrawOptions{}
 	hatTextOptions.GeoM.Translate(float64(7*e.tilePixels+5*e.tilePixels/8), float64(13*e.tilePixels+e.tilePixels/8))
-
-	hatTextOptions.ColorScale.Scale(0.5, 1.0, 0.5, 1.0)
-	if manaPercentage >= 50 && manaPercentage < 75 {
+	if manaPercentage < 15 {
+		hatTextOptions.ColorScale.Reset()
+		hatTextOptions.ColorScale.Scale(1.0, 1.0, 1.0, 1.0)
+	} else if manaPercentage < 50 {
+		hatTextOptions.ColorScale.Reset()
+		hatTextOptions.ColorScale.Scale(0.5, 1.0, 0.5, 1.0)
+	} else if manaPercentage < 75 {
 		hatTextOptions.ColorScale.Reset()
 		hatTextOptions.ColorScale.Scale(1.0, 1.0, 0.0, 1.0)
-	} else if manaPercentage >= 75 {
+	} else {
 		hatTextOptions.ColorScale.Reset()
 		hatTextOptions.ColorScale.Scale(1.0, 0.0, 0.0, 1.0)
 	}
-
 	text.Draw(screen, fmt.Sprintf("%03d%%", manaPercentage), e.textFace, hatTextOptions)
 
 	geom := ebiten.GeoM{}
@@ -808,4 +808,62 @@ func (e *EntityInventory) GetItemIcon(itemType Item) *ebiten.Image {
 		return e.removeButtonImage
 	}
 	return e.removeButtonImage
+}
+
+func (e *EntityInventory) ActivateHat() {
+	manaPercentage := int(float32(e.currentMana) / float32(e.maximumMana) * 100)
+	var newCurrency int64 = 0
+	if manaPercentage < 15 {
+		newCurrency += int64(float64(e.currentMana) * 5.0 * 0.8)
+	} else if manaPercentage < 50 {
+		newCurrency += int64(float64(e.currentMana) * 5.0 * 1.0)
+		e.GenerateRandomItem(CommonItem)
+	} else if manaPercentage < 75 {
+		newCurrency += int64(float64(e.currentMana) * 5.0 * 1.5)
+		e.GenerateRandomItem(RareItem)
+	} else {
+		newCurrency += int64(float64(e.currentMana) * 5.0 * 2.0)
+		e.GenerateRandomItem(LegendaryItem)
+	}
+	e.currentCurrency += newCurrency
+	e.currentMana = 0
+	e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
+}
+
+func (e *EntityInventory) AddItem(itemType Item) {
+	firstFreeSlot := -1
+	for i := 0; i < 4; i++ {
+		if e.inventory[i] == NoItem {
+			firstFreeSlot = i
+			break
+		}
+	}
+	if firstFreeSlot != -1 {
+		e.inventory[firstFreeSlot] = itemType
+		return
+	}
+	for i := 0; i < 4; i++ {
+		if i == 3 {
+			e.inventory[i] = itemType
+			break
+		}
+		e.inventory[i] = e.inventory[i+1]
+	}
+	if e.selectedItem > 0 {
+		e.selectedItem--
+	} else {
+		e.ClearSelectedItem()
+	}
+}
+
+func (e *EntityInventory) GenerateRandomItem(rarity ItemRarity) {
+	randomNumber := rand.Intn(100)
+	switch rarity {
+	case CommonItem:
+		if randomNumber < 50 {
+			e.AddItem(BasicTower)
+		}
+	case RareItem:
+	case LegendaryItem:
+	}
 }
