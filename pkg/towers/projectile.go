@@ -72,11 +72,14 @@ func (p *ProjectileBasic) Update(em EnemyManager, pm ProjectileManager) {
 }
 
 func (p *ProjectileBasic) Draw(screen *ebiten.Image) {
-	geom := ebiten.GeoM{}
-	geom.Translate(float64(p.position.X), float64(p.position.Y))
 	vector.StrokeCircle(screen, float32(p.position.X), float32(p.position.Y), p.radius, 1, color.RGBA{255, 255, 0, 255}, false)
-	vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 5, color.RGBA{0, 255, 0, 255}, false)
-	// TODO: draw shbounds box
+	// vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 5, color.RGBA{0, 255, 0, 255}, false)
+	geom := ebiten.GeoM{}
+	geom.Translate(-6, -6)
+	geom.Rotate(float64(-p.direction.Angle()))
+	geom.Scale(4, 4)
+	geom.Translate(float64(p.position.X), float64(p.position.Y))
+	screen.DrawImage(SpriteProjectileBasic, &ebiten.DrawImageOptions{GeoM: geom})
 }
 
 // ========================================

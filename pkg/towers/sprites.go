@@ -20,6 +20,8 @@ var (
 	SpritesheetTowerAoe   *ebiten.Image
 	SpritesheetTowerCash  *ebiten.Image
 	SpritesheetTowerSuper *ebiten.Image
+
+	SpriteProjectileBasic *ebiten.Image
 )
 
 func init() {
@@ -56,5 +58,8 @@ func init() {
 	lib.Must(err)
 
 	SpritesheetTowerSuper, _, err = ebitenutil.NewImageFromFile("sheet_4_towersuper.png")
+	lib.Must(err)
+
+	SpriteProjectileBasic, _, err = ebitenutil.NewImageFromFile("projectile_basic.png")
 	lib.Must(err)
 }
