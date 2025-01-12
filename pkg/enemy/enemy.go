@@ -38,6 +38,9 @@ type Enemy struct {
 
 	spriteSheetTimer float32
 	spriteSheetIndex int
+
+	IsDead         bool
+	poofSheetIndex int
 }
 
 func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress float64) *Enemy {
@@ -73,6 +76,20 @@ func (e *Enemy) GetSprite() *ebiten.Image {
 	if fps > 1/2000 {
 		dt = 1.0 / fps
 	}
+
+	if e.IsDead {
+		e.spriteSheetTimer += float32(dt)
+		if e.spriteSheetTimer > 0.1 {
+			e.spriteSheetTimer = 0
+			e.spriteSheetIndex = (e.spriteSheetIndex + 1)
+		}
+		if e.spriteSheetIndex == 3 {
+			e.destroyFunc()
+		}
+		return SpriteEnemyPoofSheet.SubImage(image.Rect(e.spriteSheetIndex*16, 0, (e.spriteSheetIndex+1)*16, 16)).(*ebiten.Image)
+
+	}
+
 	e.spriteSheetTimer += float32(dt) * (e.currentSpeed * 1.2)
 	if e.spriteSheetTimer > 0.1 {
 		e.spriteSheetTimer = 0
@@ -149,7 +166,10 @@ func (e *Enemy) SetHealth(health int) {
 	e.currentHealth = health
 	if e.currentHealth <= 0 {
 		audio.Controller.Play("enemy_death_poof", 0.00)
-		e.destroyFunc()
+		e.IsDead = true
+		e.spriteSheetIndex = 0
+		e.spriteSheetTimer = 0
+		e.currentSpeed = 0
 	}
 }
 

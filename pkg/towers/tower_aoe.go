@@ -13,8 +13,11 @@ type TowerAoe struct {
 }
 
 func NewTowerAoe(position lib.Vec2I) *TowerAoe {
+	tc := NewTowercore(3.0, 195.0, spritesheetTowerAoe, position)
+	tc.animSpeed = 0.20
+	tc.spriteFrames = 5
 	return &TowerAoe{
-		Towercore: NewTowercore(3.0, 195.0, spriteTowerAoe, position),
+		Towercore: tc,
 	}
 }
 
@@ -35,13 +38,23 @@ func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 		}
 	}
 
+	dirToEnemy := lib.NewVec2(0, 0)
+	if furthestEnemy != nil {
+		lastIdx, nextIdx := furthestEnemy.GetPathNodes()
+		last := path[lastIdx].ToVec2().Mul(64)
+		next := path[nextIdx].ToVec2().Mul(64)
+		pos := last.Lerp(next, float32(furthestEnemy.GetPathProgress()))
+		dirToEnemy = pos.Sub(t.position.ToVec2()).Normalize()
+		// t.lookAt = dirToEnemy
+	}
+
 	// TODO: if there is an ememy in range...
 	if t.ShouldFire(lib.Dt()) && furthestEnemy != nil {
 		lastIdx, nextIdx := furthestEnemy.GetPathNodes()
 		last := path[lastIdx].ToVec2().Mul(64)
 		next := path[nextIdx].ToVec2().Mul(64)
 		pos := last.Lerp(next, float32(furthestEnemy.GetPathProgress()))
-		dirToEnemy := pos.Sub(t.position.ToVec2()).Normalize()
+		dirToEnemy = pos.Sub(t.position.ToVec2()).Normalize()
 		prj := NewProjectileExplosive(
 			dirToEnemy,
 			t.position.ToVec2().Add(lib.NewVec2(32, 32)),
@@ -54,6 +67,7 @@ func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 		idx := pm.AddProjectile(prj)
 		prj.SelfIdx = idx
 		audio.Controller.Play("aoe_tower_shoot", 0)
+		t.shotThisTick = true
 	}
 
 	return nil

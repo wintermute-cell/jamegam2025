@@ -13,8 +13,10 @@ type TowerTacks struct {
 }
 
 func NewTowerTacks(position lib.Vec2I) *TowerTacks {
+	tc := NewTowercore(2.0, 90.0, spritesheetTowerTacks, position)
+	tc.animSpeed = 0.12
 	return &TowerTacks{
-		Towercore: NewTowercore(2.0, 90.0, spriteTowerTacks, position),
+		Towercore: tc,
 	}
 }
 
@@ -52,6 +54,7 @@ func (t *TowerTacks) Update(em EnemyManager, pm ProjectileManager) error {
 			prj.SelfIdx = idx
 		}
 		audio.Controller.Play("basic_tower_shoot", 0.05)
+		t.shotThisTick = true
 	}
 
 	return nil

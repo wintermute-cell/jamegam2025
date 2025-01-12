@@ -15,6 +15,8 @@ var (
 	SpriteEnemyBasicSheet *ebiten.Image
 	SpriteEnemyFastSheet  *ebiten.Image
 	SpriteEnemyTankSheet  *ebiten.Image
+
+	SpriteEnemyPoofSheet *ebiten.Image
 )
 
 var (
@@ -40,6 +42,9 @@ func init() {
 	SpriteEnemyTank, _, err = ebitenutil.NewImageFromFile("test_enemytank.png")
 	lib.Must(err)
 	SpriteEnemyTankSheet, _, err = ebitenutil.NewImageFromFile("sheet_4_zombie.png")
+	lib.Must(err)
+
+	SpriteEnemyPoofSheet, _, err = ebitenutil.NewImageFromFile("sheet_3_poof.png")
 	lib.Must(err)
 
 	// EFFECTS

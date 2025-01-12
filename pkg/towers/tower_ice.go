@@ -13,8 +13,10 @@ type TowerIce struct {
 }
 
 func NewTowerIce(position lib.Vec2I) *TowerIce {
+	tc := NewTowercore(2.0, 90.0, spritesheetTowerIce, position)
+	tc.animSpeed = 0.1
 	return &TowerIce{
-		Towercore: NewTowercore(3.0, 90.0, spriteTowerIce, position),
+		Towercore: tc,
 	}
 }
 
@@ -40,6 +42,7 @@ func (t *TowerIce) Update(em EnemyManager, pm ProjectileManager) error {
 			e.SetSpeedMod(speedMod, 2)
 		}
 		audio.Controller.Play("ice_tower_shoot", 0.05)
+		t.shotThisTick = true
 		// TODO: visual effect
 	}
 

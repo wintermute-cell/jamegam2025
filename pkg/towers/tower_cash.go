@@ -13,8 +13,10 @@ type TowerCash struct {
 }
 
 func NewTowerCash(position lib.Vec2I) *TowerCash {
+	tc := NewTowercore(3.0, 90.0, spritesheetTowerCash, position)
+	tc.spriteFrames = 8
 	return &TowerCash{
-		Towercore: NewTowercore(3.0, 90.0, spriteTowerCash, position),
+		Towercore: tc,
 	}
 }
 
@@ -39,6 +41,7 @@ func (t *TowerCash) Update(em EnemyManager, pm ProjectileManager) error {
 		em.AddMana(int64(mana))
 		// TODO: play sound
 		audio.Controller.Play("tower_cash_shot", 0)
+		t.shotThisTick = true
 	}
 
 	return nil

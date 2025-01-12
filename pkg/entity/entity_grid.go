@@ -124,6 +124,9 @@ func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) ([]*enemy.Enemy,
 		idx := hit.ID
 		// enemy := e.enemies[idx]
 		enemy := e.enemies.Get(int(idx))
+		if enemy.IsDead {
+			continue
+		}
 		lastIdx, nextIdx := enemy.GetPathNodes()
 		last := e.enemyPath[lastIdx].ToVec2().Mul(float32(e.tilePixels))
 		next := e.enemyPath[nextIdx].ToVec2().Mul(float32(e.tilePixels))

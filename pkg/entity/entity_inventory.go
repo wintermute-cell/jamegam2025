@@ -307,7 +307,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			e.selectTowerType(towers.TowerTypeAoe)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.cashTowerButton)) {
 			audio.Controller.Play("click", 0.00)
-			e.selectTowerType(towers.TowerTypeCash)
+			e.selectTowerType(towers.TowerTypeSuper)
 		}
 	}
 
@@ -326,7 +326,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		e.selectTowerType(towers.TowerTypeAoe)
 	} else if inpututil.IsKeyJustPressed(ebiten.Key5) {
 		audio.Controller.Play("click", 0.00)
-		e.selectTowerType(towers.TowerTypeCash)
+		e.selectTowerType(towers.TowerTypeSuper)
 	}
 
 	// Tower Placement
@@ -353,8 +353,8 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				tower = towers.NewTowerIce(e.hoveredTile.Mul(e.tilePixels))
 			case towers.TowerTypeAoe:
 				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
-			case towers.TowerTypeCash:
-				tower = towers.NewTowerCash(e.hoveredTile.Mul(e.tilePixels))
+			case towers.TowerTypeSuper:
+				tower = towers.NewTowerSuper(e.hoveredTile.Mul(e.tilePixels))
 			}
 			if tower != nil {
 				audio.Controller.Play("build_tower", 0.10)
@@ -580,7 +580,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomT4im.Scale(4, 4)
 	geomT4im.Translate(float64(aoeTowerImgPos.X), float64(aoeTowerImgPos.Y))
 	screen.DrawImage(e.aoeTowerImage, &ebiten.DrawImageOptions{GeoM: geomT4im})
-	// Cash Tower
+	// Super Tower
 	cashTowerImgPos := e.getButtonTowerIconPosition(e.cashTowerButton)
 	geomT5im := ebiten.GeoM{}
 	geomT5im.Scale(4, 4)
@@ -596,7 +596,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 		e.highlightButton(e.getButtonPosition(e.iceTowerButton), buttonOutline, screen)
 	} else if e.blueprintSelected == towers.TowerTypeAoe {
 		e.highlightButton(e.getButtonPosition(e.aoeTowerButton), buttonOutline, screen)
-	} else if e.blueprintSelected == towers.TowerTypeCash {
+	} else if e.blueprintSelected == towers.TowerTypeSuper {
 		e.highlightButton(e.getButtonPosition(e.cashTowerButton), buttonOutline, screen)
 	}
 
@@ -922,6 +922,7 @@ func (e *EntityInventory) RemoveItem(itemSlotNumber int) {
 
 func (e *EntityInventory) GetItemIcon(itemType Item) *ebiten.Image {
 	switch itemType {
+	// TODO:
 	case BasicTower:
 		return e.basicTowerImage
 	case TackTower:

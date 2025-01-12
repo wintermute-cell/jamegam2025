@@ -41,4 +41,5 @@ const (
 	TowerTypeIce
 	TowerTypeAoe
 	TowerTypeCash
+	TowerTypeSuper
 )

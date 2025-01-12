@@ -72,6 +72,14 @@ func (v Vec2) Rotate(deg float32) Vec2 {
 	}
 }
 
+// Angle returns the angle of the vector in radians
+func (v Vec2) Angle() float32 {
+	v2 := Vec2{0, 1}
+	cross := v.X*v2.Y - v.Y*v2.X
+	dot := v.X*v2.X + v.Y*v2.Y
+	return float32(math.Atan2(float64(cross), float64(dot)))
+}
+
 // Dist returns the distance between two vectors
 func (v Vec2) Dist(v2 Vec2) float32 {
 	return v.Sub(v2).Len()

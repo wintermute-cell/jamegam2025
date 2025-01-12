@@ -6,24 +6,24 @@ import (
 	"jamegam/pkg/lib"
 )
 
-var _ Tower = &TowerBasic{}
+var _ Tower = &TowerSuper{}
 
-type TowerBasic struct {
+type TowerSuper struct {
 	*Towercore
 }
 
-func NewTowerBasic(position lib.Vec2I) *TowerBasic {
-	return &TowerBasic{
-		Towercore: NewTowercore(1.0, 128.0, spritesheetTowerBasic, position),
+func NewTowerSuper(position lib.Vec2I) *TowerSuper {
+	return &TowerSuper{
+		Towercore: NewTowercore(0.2, 128.0, spritesheetTowerSuper, position),
 	}
 }
 
-func (t *TowerBasic) Price() int64 {
+func (t *TowerSuper) Price() int64 {
 	return 100
 }
 
 // Update implements Tower.
-func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
+func (t *TowerSuper) Update(em EnemyManager, pm ProjectileManager) error {
 	enemies, path := em.GetEnemies(t.position.ToVec2().Add(lib.NewVec2(32, 32)), t.radius)
 	var furthestProgress float64 = -1
 	var furthestEnemy *enemy.Enemy

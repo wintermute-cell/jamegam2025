@@ -1,6 +1,7 @@
 package towers
 
 import (
+	"image"
 	"jamegam/pkg/lib"
 	"math"
 	"time"
@@ -23,6 +24,16 @@ type Towercore struct {
 	tempDamageBuffTimer time.Time
 
 	lastFiredAgo float64
+
+	shotThisTick     bool
+	spriteFrames     int
+	spriteSheetIdx   int
+	spriteSheetTimer float64
+	isAnimating      bool
+
+	lookAt lib.Vec2
+
+	animSpeed float64
 }
 
 func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position lib.Vec2I) *Towercore {
@@ -30,9 +41,12 @@ func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position li
 		rof:            rof,
 		radius:         radius,
 		sprite:         sprite,
+		spriteFrames:   4,
 		position:       position,
 		speedUpgrades:  0,
 		damageUpgrades: 0,
+		animSpeed:      0.06,
+		lookAt:         lib.Vec2{X: 0, Y: 1},
 	}
 
 	ret.drawPosition = position.ToVec2() // TODO: for now, later some animation
@@ -76,9 +90,38 @@ func (tc *Towercore) DamageUpgrade() {
 
 func (tc *Towercore) Draw(screen *ebiten.Image) {
 	geom := ebiten.GeoM{}
+	geom.Translate(-8, -8)
+	geom.Rotate(float64(-tc.lookAt.Angle()))
+	geom.Translate(8, 8)
 	geom.Scale(4, 4)
 	geom.Translate(float64(tc.drawPosition.X), float64(tc.drawPosition.Y))
-	screen.DrawImage(tc.sprite, &ebiten.DrawImageOptions{GeoM: geom})
+	// screen.DrawImage(tc.sprite, &ebiten.DrawImageOptions{GeoM: geom})
+
+	if tc.shotThisTick {
+		tc.shotThisTick = false
+		tc.isAnimating = true
+	}
+
+	if tc.isAnimating {
+		fps := ebiten.ActualFPS()
+		dt := 1.0 / 60.0
+		if fps > 1/2000 {
+			dt = 1.0 / fps
+		}
+		tc.spriteSheetTimer += dt
+		if tc.spriteSheetTimer > 0.06 {
+			tc.spriteSheetTimer = 0
+			tc.spriteSheetIdx = (tc.spriteSheetIdx + 1) % tc.spriteFrames
+		}
+
+		if tc.spriteSheetIdx == tc.spriteFrames-1 {
+			tc.spriteSheetIdx = 0
+			tc.isAnimating = false
+		}
+	}
+	subsprite := tc.sprite.SubImage(image.Rect(tc.spriteSheetIdx*16, 0, (tc.spriteSheetIdx+1)*16, 16)).(*ebiten.Image)
+	screen.DrawImage(subsprite, &ebiten.DrawImageOptions{GeoM: geom})
+
 	// vector.StrokeCircle(
 	// 	screen,
 	// 	float32(tc.drawPosition.X+32),
@@ -89,7 +132,7 @@ func (tc *Towercore) Draw(screen *ebiten.Image) {
 	// 	false)
 }
 
-// ShouldFire must be called every tick to determine if the tower should fire
+// WARN: ShouldFire must be called every tick to determine if the tower should fire
 func (tc *Towercore) ShouldFire(dt float64) bool {
 	if tc.lastFiredAgo >= tc.rof*(math.Pow(0.9, float64(tc.speedUpgrades))) {
 		tc.lastFiredAgo = 0
