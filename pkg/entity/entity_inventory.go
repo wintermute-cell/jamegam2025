@@ -63,6 +63,11 @@ type EntityInventory struct {
 	freeUpgradeSelected bool
 	maxUpgradeSelected  bool
 
+	speedBoostActive    bool
+	speedBoostDuration  int
+	damageBoostActive   bool
+	damageBoostDuration int
+
 	hoveredTile          lib.Vec2I
 	hoveredTileHasTower  bool
 	hoveredTileIsOnPath  bool
@@ -165,6 +170,10 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		hatImage:              hatImage,
 		inventory:             [4]Item{ClearEnemies, ClearEnemies, ClearEnemies, ClearEnemies},
 		selectedItem:          -1,
+		damageBoostActive:     false,
+		speedBoostActive:      false,
+		damageBoostDuration:   0,
+		speedBoostDuration:    0,
 		grid:                  grid,
 		hoveredTileHasTower:   false,
 		hoveredTileIsOnPath:   false,
@@ -458,11 +467,23 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	}
 	text.Draw(screen, fmt.Sprintf("%03d%%", manaPercentage), e.textFace, hatTextOptions)
 
+	// Currency Display
 	geom := ebiten.GeoM{}
-	geom.Translate(10, 10)
+	geom.Translate(float64(20), float64(12*e.tilePixels+118+24+20+28))
 	text.Draw(screen, fmt.Sprintf("Currency: %d", e.currentCurrency), e.textFace, &text.DrawOptions{
 		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geom},
 	})
+
+	// Wave Display
+	geomWave := ebiten.GeoM{}
+	geomWave.Translate(float64(20), float64(12*e.tilePixels+118+26))
+	text.Draw(screen, fmt.Sprintf("Wave: %d", e.waveCounter), e.textFace, &text.DrawOptions{
+		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomWave},
+	})
+
+	// Damage Boost Display
+
+	// Speed Boost Display
 
 	// Item Slots
 	for index, _ := range e.inventory {
