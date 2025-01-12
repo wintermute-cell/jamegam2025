@@ -39,11 +39,15 @@ const (
 	ManaTower
 	FreeUpgrade
 	MaxUpgrade
-	CurrencyGift
-	SpikeTrap
+	CurrencyGiftSmall
+	CurrencyGiftMedium
+	CurrencyGiftLarge
+	BombTrap
 	ClearEnemies
-	DamageBuff
-	SpeedBuff
+	DamageBuffSmall
+	DamageBuffMedium
+	SpeedBuffSmall
+	SpeedBuffMedium
 )
 
 type EntityInventory struct {
@@ -782,20 +786,51 @@ func (e *EntityInventory) ActivateItem(itemNumber int) {
 	case MaxUpgrade:
 		e.selectedItem = itemNumber
 		e.maxUpgradeSelected = true
-	case CurrencyGift:
-		newCurrency := 50 * e.waveCounter
-		e.currentCurrency += newCurrency
-		e.RemoveItem(itemNumber)
-		e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
-	case SpikeTrap:
-		return
+	case CurrencyGiftSmall:
+		e.CurrencyGift(1, itemNumber)
+	case CurrencyGiftMedium:
+		e.CurrencyGift(2, itemNumber)
+	case CurrencyGiftLarge:
+		e.CurrencyGift(3, itemNumber)
+	case BombTrap:
 	case ClearEnemies:
-		return
-	case DamageBuff:
-		return
-	case SpeedBuff:
-		return
+	case DamageBuffSmall:
+	case DamageBuffMedium:
+	case SpeedBuffSmall:
+	case SpeedBuffMedium:
 	}
+}
+
+func (e *EntityInventory) DamageBuff(level int, itemNumber int) {
+	damageModifier := 1
+	damageDuration := 60.0
+	switch level {
+	case 1:
+		damageModifier = 2
+		damageDuration = 60.0
+	case 2:
+		damageModifier = 3
+		damageDuration := 120
+	}
+}
+
+func (e *EntityInventory) SpeedBuff(level int, itemNumber int) {
+
+}
+
+func (e *EntityInventory) CurrencyGift(level int, itemNumber int) {
+	var newCurrency int64 = 0
+	switch level {
+	case 1:
+		newCurrency = 250
+	case 2:
+		newCurrency = 1000
+	case 3:
+		newCurrency = 2500
+	}
+	e.currentCurrency += newCurrency
+	e.RemoveItem(itemNumber)
+	e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
 }
 
 func (e *EntityInventory) RemoveItem(itemSlotNumber int) {
@@ -825,16 +860,15 @@ func (e *EntityInventory) GetItemIcon(itemType Item) *ebiten.Image {
 		return e.damageButtonImage
 	case MaxUpgrade:
 		return e.firerateButtonImage
-	case CurrencyGift:
-		return e.removeButtonImage
-	case SpikeTrap:
-		return e.removeButtonImage
+	case CurrencyGiftSmall:
+	case CurrencyGiftMedium:
+	case CurrencyGiftLarge:
+	case BombTrap:
 	case ClearEnemies:
-		return e.removeButtonImage
-	case DamageBuff:
-		return e.removeButtonImage
-	case SpeedBuff:
-		return e.removeButtonImage
+	case DamageBuffSmall:
+	case DamageBuffMedium:
+	case SpeedBuffSmall:
+	case SpeedBuffMedium:
 	}
 	return e.removeButtonImage
 }
@@ -886,13 +920,15 @@ func (e *EntityInventory) AddItem(itemType Item) {
 }
 
 func (e *EntityInventory) GenerateRandomItem(rarity ItemRarity) {
-	randomNumber := rand.Intn(100)
 	switch rarity {
 	case CommonItem:
-		if randomNumber < 50 {
-			e.AddItem(BasicTower)
-		}
+		items := []Item{BombTrap, BasicTower, IceTower, CurrencyGiftSmall, DamageBuffSmall, SpeedBuffSmall}
+		e.AddItem(items[rand.Intn(len(items))])
 	case RareItem:
+		items := []Item{TackTower, AoeTower, FreeUpgrade, CurrencyGiftMedium, DamageBuffMedium, SpeedBuffMedium}
+		e.AddItem(items[rand.Intn(len(items))])
 	case LegendaryItem:
+		items := []Item{ManaTower, MaxUpgrade, ClearEnemies, CurrencyGiftLarge}
+		e.AddItem(items[rand.Intn(len(items))])
 	}
 }
