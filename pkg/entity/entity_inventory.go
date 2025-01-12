@@ -280,13 +280,6 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		}
 	}
 
-	// Sell Tower Button and Hotkey
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.removeButton)) {
-		e.SellSelectedTower()
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyX) {
-		e.SellSelectedTower()
-	}
-
 	// Upgrade Tower Damage Button and Hotkey
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.damageButton)) {
 		e.UpgradeSelectedTowerDamage()
@@ -299,6 +292,13 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		e.UpgradeSelectedTowerSpeed()
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
 		e.UpgradeSelectedTowerSpeed()
+	}
+
+	// Sell Tower Button and Hotkey
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.removeButton)) {
+		e.SellSelectedTower()
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyX) {
+		e.SellSelectedTower()
 	}
 
 	return nil
@@ -537,9 +537,10 @@ func (e *EntityInventory) StartWave() {
 }
 
 func (e *EntityInventory) SellSelectedTower() {
-	if e.grid.selectedTower.X != -1 && e.grid.selectedTower.Y != -1 {
-		sellPrice := int64(float64(e.grid.towers[e.grid.selectedTower].Price()) * 0.5)
+	if e.isTowerSelected() {
+		sellPrice := int64(float64(e.grid.towers[e.grid.selectedTower].Price())*0.5) + int64(e.grid.towers[e.grid.selectedTower].GetTotalUpgrades()*100)
 		delete(e.grid.towers, e.grid.selectedTower)
+		e.grid.selectedTower = lib.NewVec2I(-1, -1)
 		e.currentCurrency += sellPrice
 		e.grid.ShowMessage(fmt.Sprintf("Sold selected tower for %d!", sellPrice))
 	}
