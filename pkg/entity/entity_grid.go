@@ -245,7 +245,7 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 
 		if progress >= 1.0 {
 			progress = 0
-			if nextIdx == len(e.enemyPath)-1 {
+			if nextIdx == len(e.enemyPath)-2 {
 				enemy.IsDead = true
 				log.Println("Enemy reached the end")
 				e.Health--
