@@ -121,6 +121,9 @@ type EntityInventory struct {
 	speedMediumImage      *ebiten.Image
 	damageSmallImage      *ebiten.Image
 	damageMediumImage     *ebiten.Image
+	dollarImage           *ebiten.Image
+	dollarOrangeImage     *ebiten.Image
+	dollarRedImage        *ebiten.Image
 }
 
 func isInBounds(vect lib.Vec2I) bool {
@@ -164,6 +167,13 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	damageMediumImage, _, err := ebitenutil.NewImageFromFile("damageMedium.png")
 	lib.Must(err)
 
+	dollarImage, _, err := ebitenutil.NewImageFromFile("dollar.png")
+	lib.Must(err)
+	dollarOrangeImage, _, err := ebitenutil.NewImageFromFile("dollarOrange.png")
+	lib.Must(err)
+	dollarRedImage, _, err := ebitenutil.NewImageFromFile("dollarRed.png")
+	lib.Must(err)
+
 	hatImage, _, err := ebitenutil.NewImageFromFile("test_hat.png")
 	lib.Must(err)
 	arialFile, err := ebitenutil.OpenFile("font.ttf")
@@ -194,7 +204,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		cashTowerImage:        cashTowerImage,
 		superTowerImage:       superTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{DamageBuffMedium, SpeedBuffSmall, DamageBuffSmall, SpeedBuffMedium},
+		inventory:             [4]Item{DamageBuffMedium, CurrencyGiftSmall, CurrencyGiftMedium, CurrencyGiftLarge},
 		selectedItem:          -1,
 		damageBoostActive:     0,
 		speedBoostActive:      0,
@@ -229,6 +239,9 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		speedMediumImage:      speedMediumImage,
 		damageSmallImage:      damageSmallImage,
 		damageMediumImage:     damageMediumImage,
+		dollarImage:           dollarImage,
+		dollarOrangeImage:     dollarOrangeImage,
+		dollarRedImage:        dollarRedImage,
 		basicTowerButton:      lib.NewVec2I(2, 1),
 		tackTowerButton:       lib.NewVec2I(3, 1),
 		iceTowerButton:        lib.NewVec2I(4, 1),
@@ -672,7 +685,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomUI2 := ebiten.GeoM{}
 	geomUI2.Scale(4, 4)
 	geomUI2.Translate(float64(removeButtonImagePos.X), float64(removeButtonImagePos.Y))
-	screen.DrawImage(e.removeButtonImage, &ebiten.DrawImageOptions{GeoM: geomUI2})
+	screen.DrawImage(e.dollarImage, &ebiten.DrawImageOptions{GeoM: geomUI2})
 	// Damage Upgrade Button
 	damageButtonImagePos := e.getButtonTowerIconPosition(e.damageButton)
 	geomUI3 := ebiten.GeoM{}
@@ -993,8 +1006,11 @@ func (e *EntityInventory) GetItemIcon(itemType Item) *ebiten.Image {
 	case MaxUpgrade:
 		return e.maxUpgradeImage
 	case CurrencyGiftSmall:
+		return e.dollarImage
 	case CurrencyGiftMedium:
+		return e.dollarOrangeImage
 	case CurrencyGiftLarge:
+		return e.dollarRedImage
 	case BombTrap:
 	case ClearEnemies:
 		return e.bombImage
