@@ -138,6 +138,7 @@ func NewEntityGrid(
 		towers:              make(map[lib.Vec2I]towers.Tower),
 		droppedMana:         0,
 		towerRangeIndicator: true,
+		selectedTower:       lib.NewVec2I(-1, -1),
 	}
 	return newEnt
 }

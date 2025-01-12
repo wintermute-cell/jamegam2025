@@ -451,6 +451,29 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomUI4.Scale(4, 4)
 	geomUI4.Translate(float64(firerateButtonImagePos.X), float64(firerateButtonImagePos.Y))
 	screen.DrawImage(e.firerateButtonImage, &ebiten.DrawImageOptions{GeoM: geomUI4})
+
+	// Upgrade Indicators
+	if e.isTowerSelected() {
+		tow := e.grid.towers[e.grid.selectedTower]
+		// Damage
+		dmgButtonPos := e.getButtonPosition(e.damageButton)
+		for i := 0; i < int(tow.GetDamageUpgrades()); i++ {
+			geomDI := ebiten.GeoM{}
+			geomDI.Scale(4, 4)
+			geomDI.Translate(float64(dmgButtonPos.X)+(16.0+4.0)*float64(i), float64(dmgButtonPos.Y))
+			screen.DrawImage(e.upgradeIndicatorImage, &ebiten.DrawImageOptions{GeoM: geomDI})
+		}
+
+		// Speed
+		spdButtonPos := e.getButtonPosition(e.firerateButton)
+		for i := 0; i < int(tow.GetSpeedUpgrades()); i++ {
+			geomSI := ebiten.GeoM{}
+			geomSI.Scale(4, 4)
+			geomSI.Translate(float64(spdButtonPos.X)+(16.0+4.0)*float64(i), float64(spdButtonPos.Y))
+			screen.DrawImage(e.upgradeIndicatorImage, &ebiten.DrawImageOptions{GeoM: geomSI})
+		}
+
+	}
 }
 
 func isInButton(mouseX int, mouseY int, button lib.Vec2I) bool {
@@ -557,4 +580,8 @@ func (e *EntityInventory) UpgradeSelectedTowerDamage() {
 		}
 	}
 
+}
+
+func (e *EntityInventory) isTowerSelected() bool {
+	return e.grid.selectedTower.X != -1 && e.grid.selectedTower.Y != -1
 }
