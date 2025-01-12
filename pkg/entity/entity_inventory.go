@@ -163,7 +163,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		aoeTowerImage:         aoeTowerImage,
 		cashTowerImage:        cashTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{NoItem, NoItem, NoItem, NoItem},
+		inventory:             [4]Item{ClearEnemies, ClearEnemies, ClearEnemies, ClearEnemies},
 		selectedItem:          -1,
 		grid:                  grid,
 		hoveredTileHasTower:   false,
@@ -219,7 +219,6 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			}
 		} else {
 			e.peace = true
-			e.waveController.IncreaseResources()
 		}
 	}
 
@@ -671,6 +670,7 @@ func (e *EntityInventory) StartWave() {
 	e.peace = false
 	e.waveCounter++
 	e.grid.ShowMessage(fmt.Sprintf("Wave %d started! (Strength: %d)", e.waveCounter, e.waveController.GetResources()))
+	e.waveController.IncreaseResources()
 }
 
 func (e *EntityInventory) SellSelectedTower() {
@@ -794,6 +794,9 @@ func (e *EntityInventory) ActivateItem(itemNumber int) {
 		e.CurrencyGift(3, itemNumber)
 	case BombTrap:
 	case ClearEnemies:
+		e.grid.NukeEnemies()
+		e.RemoveItem(itemNumber)
+		e.grid.ShowMessage("Nuked all enemies!")
 	case DamageBuffSmall:
 		e.DamageBuff(1, itemNumber)
 	case DamageBuffMedium:
