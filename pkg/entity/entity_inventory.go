@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
@@ -129,16 +130,16 @@ func (e *EntityInventory) isOnPath(vect lib.Vec2I) bool {
 }
 
 func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
-	inventorySlotImage, _, err := ebitenutil.NewImageFromFile("inventory_slot_24x24.png")
+	inventorySlotImage, _, err := ebitenutil.NewImageFromFile("inventory_slot.png")
 	lib.Must(err)
-	basicTowerImage, _, err := ebitenutil.NewImageFromFile("test_tower.png")
-	lib.Must(err)
-	tackTowerImage, _, err := ebitenutil.NewImageFromFile("test_towertacks.png")
-	lib.Must(err)
-	iceTowerImage, _, err := ebitenutil.NewImageFromFile("test_towerice.png")
-	lib.Must(err)
-	aoeTowerImage, _, err := ebitenutil.NewImageFromFile("test_toweraoe.png")
-	lib.Must(err)
+
+	basicTowerImage := towers.SpritesheetTowerBasic.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+	tackTowerImage := towers.SpritesheetTowerTacks.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+	iceTowerImage := towers.SpritesheetTowerIce.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+	aoeTowerImage := towers.SpritesheetTowerAoe.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+	cashTowerImage := towers.SpritesheetTowerCash.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+	superTowerImage := towers.SpritesheetTowerSuper.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+
 	hatImage, _, err := ebitenutil.NewImageFromFile("test_hat.png")
 	lib.Must(err)
 	arialFile, err := ebitenutil.OpenFile("font.ttf")
@@ -157,8 +158,6 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	upgradeIndicatorImage, _, err := ebitenutil.NewImageFromFile("upgradeindicator.png")
 	lib.Must(err)
-	cashTowerImage, _, err := ebitenutil.NewImageFromFile("test_towercash.png")
-	lib.Must(err)
 
 	newEnt := &EntityInventory{
 		tilePixels:            tilePixels,
@@ -169,6 +168,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		iceTowerImage:         iceTowerImage,
 		aoeTowerImage:         aoeTowerImage,
 		cashTowerImage:        cashTowerImage,
+		superTowerImage:       superTowerImage,
 		hatImage:              hatImage,
 		inventory:             [4]Item{ManaTower, ManaTower, DamageBuffMedium, DamageBuffSmall},
 		selectedItem:          -1,
@@ -589,7 +589,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomT5im := ebiten.GeoM{}
 	geomT5im.Scale(4, 4)
 	geomT5im.Translate(float64(cashTowerImgPos.X), float64(cashTowerImgPos.Y))
-	screen.DrawImage(e.cashTowerImage, &ebiten.DrawImageOptions{GeoM: geomT5im})
+	screen.DrawImage(e.superTowerImage, &ebiten.DrawImageOptions{GeoM: geomT5im})
 
 	// Select Tower
 	if e.blueprintSelected == towers.TowerTypeBasic {
