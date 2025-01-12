@@ -17,6 +17,9 @@ type Tower interface {
 	GetDamageUpgrades() int32
 	SpeedUpgrade()
 	DamageUpgrade()
+
+	SetSpeedBuff(float32, float32)
+	SetDamageBuff(float32, float32)
 }
 
 type EnemyManager interface {

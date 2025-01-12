@@ -3,6 +3,7 @@ package towers
 import (
 	"jamegam/pkg/lib"
 	"math"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -15,6 +16,11 @@ type Towercore struct {
 	drawPosition   lib.Vec2
 	speedUpgrades  int32
 	damageUpgrades int32
+
+	tempSpeedBuff       float32
+	tempDamageBuff      float32
+	tempSpeedBuffTimer  time.Time
+	tempDamageBuffTimer time.Time
 
 	lastFiredAgo float64
 }
@@ -36,6 +42,16 @@ func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position li
 
 func (tc *Towercore) Radius() float32 {
 	return tc.radius
+}
+
+func (tc *Towercore) SetSpeedBuff(buff float32, duration float32) {
+	tc.tempSpeedBuff = buff
+	tc.tempSpeedBuffTimer = time.Now().Add(time.Duration(duration) * time.Second)
+}
+
+func (tc *Towercore) SetDamageBuff(buff float32, duration float32) {
+	tc.tempDamageBuff = buff
+	tc.tempDamageBuffTimer = time.Now().Add(time.Duration(duration) * time.Second)
 }
 
 func (tc *Towercore) GetTotalUpgrades() int32 {
@@ -79,6 +95,15 @@ func (tc *Towercore) ShouldFire(dt float64) bool {
 		tc.lastFiredAgo = 0
 		return true
 	}
+
+	// check and reset temporary buffs
+	if tc.tempSpeedBuffTimer.Before(time.Now()) {
+		tc.tempSpeedBuff = 0
+	}
+	if tc.tempDamageBuffTimer.Before(time.Now()) {
+		tc.tempDamageBuff = 0
+	}
+
 	tc.lastFiredAgo += dt
 	return false
 }

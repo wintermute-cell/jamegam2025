@@ -87,11 +87,26 @@ func (e *EntityGrid) RemoveProjectile(idx int) {
 	e.projectiles.Remove(idx)
 }
 
+// NukeEnemies destroys all enemies.
 func (e *EntityGrid) NukeEnemies() {
 	e.enemies.FuncAll(func(idx int, enemy *enemy.Enemy) {
 		// TODO: play sound and animation
 		enemy.SetHealth(0)
 	})
+}
+
+// BuffAllTowersDamage increases the damage of all towers temporarily.
+func (e *EntityGrid) BuffAllTowersDamage(mult, duration float32) {
+	for _, tower := range e.towers {
+		tower.SetDamageBuff(mult, duration)
+	}
+}
+
+// BuffAllTowersSpeed increases the speed of all towers temporarily.
+func (e *EntityGrid) BuffAllTowersSpeed(mult, duration float32) {
+	for _, tower := range e.towers {
+		tower.SetSpeedBuff(mult, duration)
+	}
 }
 
 // GetEnemies implements towers.EnemyManager.
