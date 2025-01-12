@@ -554,6 +554,9 @@ func (e *EntityInventory) SellSelectedTower() {
 }
 
 func (e *EntityInventory) UpgradeSelectedTowerSpeed() {
+	if !e.isTowerSelected() {
+		return
+	}
 	tower := e.grid.towers[e.grid.selectedTower]
 	if tower.GetTotalUpgrades() >= 7 {
 		e.grid.ShowMessage("This tower has reached the maximum amount of total upgrades!")
@@ -572,6 +575,9 @@ func (e *EntityInventory) UpgradeSelectedTowerSpeed() {
 }
 
 func (e *EntityInventory) UpgradeSelectedTowerDamage() {
+	if !e.isTowerSelected() {
+		return
+	}
 	tower := e.grid.towers[e.grid.selectedTower]
 	if tower.GetTotalUpgrades() >= 7 {
 		e.grid.ShowMessage("This tower has reached the maximum amount of total upgrades!")
