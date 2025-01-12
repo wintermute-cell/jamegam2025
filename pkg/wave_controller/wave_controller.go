@@ -69,6 +69,10 @@ func (e *WaveController) IncreaseResources() {
 	fmt.Printf("Next Wave Budget: %d", e.resources)
 }
 
+func (e *WaveController) Reset() {
+	e.resources = 100
+}
+
 func (e *WaveController) Deinit() {
 
 }

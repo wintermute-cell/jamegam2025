@@ -175,7 +175,7 @@ func NewEntityGrid(
 		droppedMana:         0,
 		towerRangeIndicator: true,
 		selectedTower:       lib.NewVec2I(-1, -1),
-		Health:              100,
+		Health:              1,
 	}
 	return newEnt
 }
@@ -432,4 +432,11 @@ func drawGridLine(screen *ebiten.Image, x, y, tilePixels int) {
 		thickness,
 		color.RGBA{255, 255, 255, 255},
 		false)
+}
+
+func (e *EntityGrid) Restart() {
+	e.NukeEnemies()
+	e.projectiles.Clear()
+	e.towers = make(map[lib.Vec2I]towers.Tower)
+	e.Health = 100
 }

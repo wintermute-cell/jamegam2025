@@ -186,7 +186,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		waveController:        wavecontroller.NewWaveController(100),
 		peace:                 true,
 		enemySpawnTimer:       0.0,
-		currentCurrency:       1_000, // TODO: remove this
+		currentCurrency:       1_000, // TODO: balance this
 		waveCounter:           0,
 		turretRangeIndicator:  true,
 		freeTurretSelected:    towers.TowerTypeNone,
@@ -215,6 +215,11 @@ func (e *EntityInventory) Init(EntitySpawner) {
 }
 
 func (e *EntityInventory) Update(EntitySpawner) error {
+	// Restart Game
+	if e.grid.Health <= 0 {
+		e.RestartGame()
+	}
+
 	mouseX, mouseY := ebiten.CursorPosition()
 
 	if e.peace {
@@ -1018,5 +1023,30 @@ func (e *EntityInventory) GenerateRandomItem(rarity ItemRarity) {
 }
 
 func (e *EntityInventory) RestartGame() {
+	// Reset Grid
+	e.grid.Restart()
+	// Reset Items
+	e.RemoveItem(0)
+	e.RemoveItem(1)
+	e.RemoveItem(2)
+	e.RemoveItem(3)
+	e.ClearSelectedItem()
+	// Reset Boosts
+	e.speedBoostActive = 0
+	e.damageBoostActive = 0
+	e.speedBoostDuration = 0
+	e.damageBoostDuration = 0
+	// Reset Tower Selection
+	e.blueprintSelected = 0
+	// Reset Mana/Currency
+	e.currentCurrency = 1000 // TODO: balance
+	e.currentMana = 0
+	// Reset Waves
+	e.currentWave = []enemy.EnemyType{}
+	e.waveCounter = 0
+	e.waveController.Reset()
+	// Reset Spawns
+	e.peace = true
+	e.enemySpawnTimer = 0.0
 
 }
