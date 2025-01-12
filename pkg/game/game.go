@@ -144,6 +144,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			fakeScreen.DrawImage(sprites.SpritePauseMenu, &ebiten.DrawImageOptions{
 				GeoM: geom,
 			})
+			fakeScreen.DrawImage(sprites.SpriteTutorial, &ebiten.DrawImageOptions{})
 
 			// Button hitboxes
 			// vector.DrawFilledRect(fakeScreen, 32+312, 20+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)

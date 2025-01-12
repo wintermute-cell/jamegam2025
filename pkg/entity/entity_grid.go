@@ -224,6 +224,11 @@ func (e *EntityGrid) ShowMessage(message string) {
 
 func (e *EntityGrid) Update(EntitySpawner) error {
 
+	if e.Health <= 0 {
+		e.Restart()
+		return nil
+	}
+
 	e.messageTimer -= lib.Dt()
 	if e.messageTimer <= 0 {
 		e.messageTimer = -2
@@ -237,6 +242,7 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 	// Move Enemies
 	shElements := []*spatialhash.SHElement{}
 	// for idx, enemy := range e.enemies {
+	killedEnemies := []int{}
 	e.enemies.FuncAll(func(idx int, enemy *enemy.Enemy) {
 		lastIdx, nextIdx := enemy.GetPathNodes()
 		progress := enemy.GetPathProgress()
@@ -246,7 +252,7 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 		if progress >= 1.0 {
 			progress = 0
 			if nextIdx == len(e.enemyPath)-2 {
-				enemy.IsDead = true
+				killedEnemies = append(killedEnemies, idx)
 				log.Println("Enemy reached the end")
 				e.Health--
 
@@ -266,6 +272,10 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 			},
 		})
 	})
+
+	for _, idx := range killedEnemies {
+		e.enemies.Get(idx).SetHealth(0)
+	}
 
 	e.spatialHash.Construct(shElements)
 
@@ -370,13 +380,13 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 		}
 
 		// Draw Hitbox
-		vector.StrokeCircle(screen,
-			float32(pos.X)+32,
-			float32(pos.Y)+32,
-			24,
-			1,
-			color.RGBA{255, 0, 0, 255},
-			false)
+		// vector.StrokeCircle(screen,
+		// 	float32(pos.X)+32,
+		// 	float32(pos.Y)+32,
+		// 	24,
+		// 	1,
+		// 	color.RGBA{255, 0, 0, 255},
+		// 	false)
 
 		geom.Reset()
 		geom.Scale(4, 4)

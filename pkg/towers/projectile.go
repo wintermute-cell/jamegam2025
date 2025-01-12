@@ -72,7 +72,7 @@ func (p *ProjectileBasic) Update(em EnemyManager, pm ProjectileManager) {
 }
 
 func (p *ProjectileBasic) Draw(screen *ebiten.Image) {
-	vector.StrokeCircle(screen, float32(p.position.X), float32(p.position.Y), p.radius, 1, color.RGBA{255, 255, 0, 255}, false)
+	// vector.StrokeCircle(screen, float32(p.position.X), float32(p.position.Y), p.radius, 1, color.RGBA{255, 255, 0, 255}, false)
 	// vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 5, color.RGBA{0, 255, 0, 255}, false)
 	geom := ebiten.GeoM{}
 	geom.Translate(-6, -6)
@@ -158,7 +158,7 @@ func (p *ProjectileExplosive) Draw(screen *ebiten.Image) {
 	geom.Translate(float64(p.position.X), float64(p.position.Y))
 
 	if p.exploding {
-		vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), p.explosionRadius, color.RGBA{255, 0, 0, 150}, false)
+		vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), p.explosionRadius, color.RGBA{223, 113, 38, 150}, false)
 		return
 	}
 	vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 10, color.RGBA{50, 50, 50, 255}, false)

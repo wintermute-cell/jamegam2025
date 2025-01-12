@@ -14,6 +14,7 @@ var (
 	SpritePauseMenu      *ebiten.Image
 	SpriteMainMenu       *ebiten.Image
 	SpriteMainMenuButton *ebiten.Image
+	SpriteTutorial       *ebiten.Image
 )
 
 func init() {
@@ -32,5 +33,8 @@ func init() {
 	lib.Must(err)
 
 	SpriteMainMenuButton, _, err = ebitenutil.NewImageFromFile("mainmenu_button.png")
+	lib.Must(err)
+
+	SpriteTutorial, _, err = ebitenutil.NewImageFromFile("tutorial.png")
 	lib.Must(err)
 }

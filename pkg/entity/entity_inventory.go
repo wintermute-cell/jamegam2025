@@ -204,7 +204,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		cashTowerImage:        cashTowerImage,
 		superTowerImage:       superTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{NoItem, NoItem, NoItem, NoItem},
+		inventory:             [4]Item{ManaTower, NoItem, NoItem, NoItem},
 		selectedItem:          -1,
 		damageBoostActive:     0,
 		speedBoostActive:      0,
