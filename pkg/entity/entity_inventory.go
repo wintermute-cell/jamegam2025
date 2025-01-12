@@ -524,6 +524,13 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 		})
 	}
 
+	// Health Display
+	geomHealth := ebiten.GeoM{}
+	geomHealth.Translate(10, 10)
+	text.Draw(screen, fmt.Sprintf("Health: %d", e.grid.Health), e.textFace, &text.DrawOptions{
+		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomHealth},
+	})
+
 	// Item Slots
 	for index, _ := range e.inventory {
 		itemPosition := e.getButtonPosition(lib.NewVec2I(index+5, 0))
@@ -1026,11 +1033,8 @@ func (e *EntityInventory) RestartGame() {
 	// Reset Grid
 	e.grid.Restart()
 	// Reset Items
-	e.RemoveItem(0)
-	e.RemoveItem(1)
-	e.RemoveItem(2)
-	e.RemoveItem(3)
 	e.ClearSelectedItem()
+	e.inventory = [4]Item{NoItem, NoItem, NoItem, NoItem}
 	// Reset Boosts
 	e.speedBoostActive = 0
 	e.damageBoostActive = 0
@@ -1042,9 +1046,9 @@ func (e *EntityInventory) RestartGame() {
 	e.currentCurrency = 1000 // TODO: balance
 	e.currentMana = 0
 	// Reset Waves
-	e.currentWave = []enemy.EnemyType{}
 	e.waveCounter = 0
 	e.waveController.Reset()
+	e.currentWave = []enemy.EnemyType{}
 	// Reset Spawns
 	e.peace = true
 	e.enemySpawnTimer = 0.0

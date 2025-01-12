@@ -175,7 +175,7 @@ func NewEntityGrid(
 		droppedMana:         0,
 		towerRangeIndicator: true,
 		selectedTower:       lib.NewVec2I(-1, -1),
-		Health:              1,
+		Health:              10,
 	}
 	return newEnt
 }
@@ -245,6 +245,7 @@ func (e *EntityGrid) Update(EntitySpawner) error {
 		if progress >= 1.0 {
 			progress = 0
 			if nextIdx == len(e.enemyPath)-1 {
+				enemy.IsDead = true
 				log.Println("Enemy reached the end")
 				e.Health--
 
@@ -437,6 +438,7 @@ func drawGridLine(screen *ebiten.Image, x, y, tilePixels int) {
 func (e *EntityGrid) Restart() {
 	e.NukeEnemies()
 	e.projectiles.Clear()
+	e.selectedTower = lib.NewVec2I(-1, -1)
 	e.towers = make(map[lib.Vec2I]towers.Tower)
 	e.Health = 100
 }
