@@ -50,6 +50,7 @@ func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position li
 		damageUpgrades: 0,
 		animSpeed:      0.06,
 		settleAnim:     -0.2,
+		lastFiredAgo:   100,
 		lookAt:         lib.Vec2{X: 0, Y: 1},
 	}
 

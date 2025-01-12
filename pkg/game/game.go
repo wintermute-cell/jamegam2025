@@ -6,10 +6,14 @@ import (
 	"jamegam/pkg/audio"
 	"jamegam/pkg/entity"
 	"jamegam/pkg/lib"
+	"jamegam/pkg/pauser"
+	"jamegam/pkg/sprites"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type TileConfig struct {
@@ -26,6 +30,8 @@ type Game struct {
 	// Entities
 	grid      *entity.EntityGrid
 	inventory *entity.EntityInventory
+
+	isMainMenu bool
 }
 
 // NewGame creates a new Game instance
@@ -62,12 +68,35 @@ pppppppppppppp.p
 	g.AddEntity(g.inventory)
 }
 
+// Called by main menu
+func (g *Game) LateInit() error
+}
+
 // Update is part of the ebiten.Game interface.
 func (g *Game) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		pauser.IsPaused = !pauser.IsPaused
+	}
 	specialUpdate(g)
-	for _, entity := range g.entities {
-		if err := entity.Update(g); err != nil {
-			return err
+	if !pauser.IsPaused {
+		for _, entity := range g.entities {
+			if err := entity.Update(g); err != nil {
+				return err
+			}
+		}
+	} else {
+		// TODO: pause menu buttons
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			x, y := ebiten.CursorPosition()
+			// vector.DrawFilledRect(fakeScreen, 32+312, 20+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
+			// vector.DrawFilledRect(fakeScreen, 32+312, 136+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
+			if x > 312+32 && x < 312+32+336 && y > 300+20 && y < 300+20+88 {
+				g.inventory.RestartGame()
+			}
+			if x > 312+32 && x < 312+32+336 && y > 300+136 && y < 300+136+88 {
+				audio.Controller.ToggleMute()
+			}
+
 		}
 	}
 	return nil
@@ -78,9 +107,24 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	fakeScreen := ebiten.NewImage(1024, 1024)
 	screen.Fill(color.Black)
 	fakeScreen.Fill(color.Black)
+
 	for _, entity := range g.entities {
 		entity.Draw(fakeScreen)
 	}
+
+	if pauser.IsPaused {
+		vector.DrawFilledRect(fakeScreen, 0, 0, 2000, 2000, color.RGBA{0, 0, 0, 100}, false)
+		geom := ebiten.GeoM{}
+		geom.Translate(312, 300)
+		fakeScreen.DrawImage(sprites.SpritePauseMenu, &ebiten.DrawImageOptions{
+			GeoM: geom,
+		})
+
+		// Button hitboxes
+		// vector.DrawFilledRect(fakeScreen, 32+312, 20+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
+		// vector.DrawFilledRect(fakeScreen, 32+312, 136+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
+	}
+
 	ebitenutil.DebugPrint(fakeScreen, fmt.Sprintf("dt: %f", lib.Dt()))
 	geom := ebiten.GeoM{}
 	// geom.Translate(20, 20)

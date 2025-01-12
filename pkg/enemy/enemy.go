@@ -3,6 +3,7 @@ package enemy
 import (
 	"image"
 	"jamegam/pkg/audio"
+	"jamegam/pkg/pauser"
 	"log"
 	"time"
 
@@ -90,7 +91,9 @@ func (e *Enemy) GetSprite() *ebiten.Image {
 
 	}
 
-	e.spriteSheetTimer += float32(dt) * (e.currentSpeed * 1.2)
+	if !pauser.IsPaused {
+		e.spriteSheetTimer += float32(dt) * (e.currentSpeed * 1.2)
+	}
 	if e.spriteSheetTimer > 0.1 {
 		e.spriteSheetTimer = 0
 		mod := 4

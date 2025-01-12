@@ -18,6 +18,9 @@ type AudioController struct {
 	audioCtx     *audio.Context
 	soundPlayers map[string][]PitchedPlayer
 	sounds       map[string][]byte
+
+	ostPlayer *audio.Player
+	isMuted   bool
 }
 
 type PitchedPlayer struct {
@@ -73,6 +76,7 @@ func (a *AudioController) PlayOst() {
 	lib.Must(err)
 	player.SetVolume(0.5)
 	player.Play()
+	a.ostPlayer = player
 	// player, err := a.audioCtx.NewPlayer(streamReader)
 	// lib.Must(err)
 	// audio.NewInfiniteLoop(player, streamReader.Length()).Play()
@@ -80,7 +84,19 @@ func (a *AudioController) PlayOst() {
 	// player.Play()
 }
 
+func (a *AudioController) ToggleMute() {
+	a.isMuted = !a.isMuted
+	if a.isMuted {
+		a.ostPlayer.SetVolume(0)
+	} else {
+		a.ostPlayer.SetVolume(0.5)
+	}
+}
+
 func (a *AudioController) Play(sound string, variance float64) {
+	if a.isMuted {
+		return
+	}
 	variance = (rand.Float64() - 0.5) * variance * 2
 	log.Printf("Playing sound %s with variance %f", sound, variance)
 	if _, ok := a.sounds[sound]; !ok {

@@ -8,6 +8,7 @@ import (
 	// "jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
+	"jamegam/pkg/pauser"
 	"jamegam/pkg/spatialhash"
 	"jamegam/pkg/sprites"
 	"jamegam/pkg/towers"
@@ -343,11 +344,15 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 		newWander := enem.GetWander() + float32(lib.Dt())*enem.WanderVelocity
 		enem.WanderVelocity = enem.WanderVelocity*0.95 + (rand.Float32()-0.5)*200*float32(lib.Dt())
 		newWander = max(-10, min(10, newWander))
-		enem.SetWander(newWander)
+		if !pauser.IsPaused {
+			enem.SetWander(newWander)
+		}
 		wanderDirection := next.Sub(last).Normalize().Rotate(90).Mul(enem.GetWander())
 
 		newBounce := enem.GetBounce() + float32(lib.Dt())*float32(math.Sqrt(float64(enem.GetSpeed())))*10
-		enem.SetBounce(newBounce)
+		if !pauser.IsPaused {
+			enem.SetBounce(newBounce)
+		}
 
 		geom := ebiten.GeoM{}
 		geom.Scale(4, 4)
