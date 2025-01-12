@@ -46,12 +46,12 @@ func (t *TowerBasic) Update(em EnemyManager, pm ProjectileManager) error {
 			t.position.ToVec2().Add(lib.NewVec2(32, 32)),
 			800.0,
 			12.0,
-			1,
+			0.2,
 			int(1*t.damageUpgrades+1),
 		)
 		idx := pm.AddProjectile(prj)
 		prj.SelfIdx = idx
-		audio.Controller.Play("test_pew", 0)
+		audio.Controller.Play("basic_tower_shoot", 0.05)
 	}
 
 	return nil

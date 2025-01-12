@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"image/color"
+	"jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/towers"
@@ -223,30 +224,41 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 
 	// Start Wave Button and Hotkey
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.playButton)) {
+		audio.Controller.Play("click", 0.00)
+		// TODO: horn sound maybe
 		e.StartWave()
 	} else if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		audio.Controller.Play("click", 0.00)
+		// TODO: horn sound maybe
 		e.StartWave()
 	}
 
 	// Toggle Turret Range Indicators
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		audio.Controller.Play("click", 0.00)
 		e.ToggleTowerIndicator()
 	}
 
 	// Hat Button
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && e.isInHatButton(mouseX, mouseY) {
+		audio.Controller.Play("click", 0.00)
+		// TODO: other hat sounds
 		e.ActivateHat()
 	}
 
 	// Item Buttons
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(5, 0))) {
+			audio.Controller.Play("click", 0.00)
 			e.ActivateItem(0)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(6, 0))) {
+			audio.Controller.Play("click", 0.00)
 			e.ActivateItem(1)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(7, 0))) {
+			audio.Controller.Play("click", 0.00)
 			e.ActivateItem(2)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(8, 0))) {
+			audio.Controller.Play("click", 0.00)
 			e.ActivateItem(3)
 		}
 	}
@@ -254,28 +266,38 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	// Tower Buttons
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
+			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeBasic)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.tackTowerButton)) {
+			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeTacks)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.iceTowerButton)) {
+			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeIce)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.aoeTowerButton)) {
+			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeAoe)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.cashTowerButton)) {
+			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeCash)
 		}
 	}
 
 	// Tower Hotkeys
 	if inpututil.IsKeyJustPressed(ebiten.Key1) {
+		audio.Controller.Play("click", 0.00)
 		e.selectTowerType(towers.TowerTypeBasic)
 	} else if inpututil.IsKeyJustPressed(ebiten.Key2) {
+		audio.Controller.Play("click", 0.00)
 		e.selectTowerType(towers.TowerTypeTacks)
 	} else if inpututil.IsKeyJustPressed(ebiten.Key3) {
+		audio.Controller.Play("click", 0.00)
 		e.selectTowerType(towers.TowerTypeIce)
 	} else if inpututil.IsKeyJustPressed(ebiten.Key4) {
+		audio.Controller.Play("click", 0.00)
 		e.selectTowerType(towers.TowerTypeAoe)
 	} else if inpututil.IsKeyJustPressed(ebiten.Key5) {
+		audio.Controller.Play("click", 0.00)
 		e.selectTowerType(towers.TowerTypeCash)
 	}
 
@@ -305,9 +327,9 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
 			case towers.TowerTypeCash:
 				tower = towers.NewTowerCash(e.hoveredTile.Mul(e.tilePixels))
-				// case towers.TowerType...:
 			}
 			if tower != nil {
+				audio.Controller.Play("build_tower", 0.10)
 				if free || e.currentCurrency >= tower.Price() {
 					if free {
 						e.RemoveItem(e.selectedItem)
@@ -323,6 +345,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			}
 		}
 	} else if (e.blueprintSelected != towers.TowerTypeNone || e.freeTurretSelected != towers.TowerTypeNone) && e.hoveredTileIsOnPath && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
+		audio.Controller.Play("error", 0.00)
 		e.grid.ShowMessage("Can't place tower on the path.")
 	} else if isInBounds(e.hoveredTile) && e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -350,22 +373,28 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 
 	// Upgrade Tower Damage Button and Hotkey
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.damageButton)) {
+		audio.Controller.Play("click", 0.00)
 		e.UpgradeSelectedTowerDamage()
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		audio.Controller.Play("click", 0.00)
 		e.UpgradeSelectedTowerDamage()
 	}
 
 	// Upgrade Tower Speed Button and Hotkey
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.firerateButton)) {
+		audio.Controller.Play("click", 0.00)
 		e.UpgradeSelectedTowerSpeed()
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		audio.Controller.Play("click", 0.00)
 		e.UpgradeSelectedTowerSpeed()
 	}
 
 	// Sell Tower Button and Hotkey
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInButton(mouseX, mouseY, e.getButtonPosition(e.removeButton)) {
+		audio.Controller.Play("click", 0.00)
 		e.SellSelectedTower()
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyX) {
+		audio.Controller.Play("click", 0.00)
 		e.SellSelectedTower()
 	}
 

@@ -6,6 +6,7 @@ import (
 	"jamegam/pkg/lib"
 	"log"
 	"math/rand"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
@@ -34,8 +35,16 @@ func init() {
 	sounds := []string{
 		"audio",
 		"test_pew",
-		"test_deathsound",
+		"enemy_death_poof",
 		"tower_cash_shot",
+		"basic_tower_shoot",
+		"ice_tower_shoot",
+		"aoe_tower_shoot",
+		"aoe_tower_explosion",
+		"click",
+		"error",
+		"notification",
+		"build_tower",
 	}
 
 	for _, sound := range sounds {
@@ -55,6 +64,7 @@ func (a *AudioController) loadSound(name string) {
 
 func (a *AudioController) Play(sound string, variance float64) {
 	variance = (rand.Float64() - 0.5) * variance * 2
+	log.Printf("Playing sound %s with variance %f", sound, variance)
 	if _, ok := a.sounds[sound]; !ok {
 		log.Printf("Sound %s not loaded", sound)
 	}
@@ -74,8 +84,9 @@ func (a *AudioController) Play(sound string, variance float64) {
 	// player.Play()
 
 	reader := bytes.NewReader(a.sounds[sound])
-	pshift := effects.NewPitchShift(2048).SetSource(reader).SetPitch(1.0 + variance)
+	pshift := effects.NewPitchShift(256).SetSource(reader).SetStrength(0.7).SetPitch(1.0 + variance)
 	player, err := a.audioCtx.NewPlayer(pshift)
+	player.SetBufferSize(time.Millisecond * 500)
 	lib.Must(err)
 	a.soundPlayers[sound] = append(a.soundPlayers[sound], PitchedPlayer{
 		player:       player,

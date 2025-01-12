@@ -53,7 +53,7 @@ func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 		)
 		idx := pm.AddProjectile(prj)
 		prj.SelfIdx = idx
-		audio.Controller.Play("test_pew", 0)
+		audio.Controller.Play("aoe_tower_shoot", 0)
 	}
 
 	return nil

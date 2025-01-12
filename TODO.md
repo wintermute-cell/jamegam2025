@@ -2,7 +2,7 @@
 
 - [ ] sound effects
 - [ ] ui grafix
-- [ ] better font
+- [x] better font
 - [ ] one more normal tower
 - [ ] window border/decoration
 - [ ] next wave timer
@@ -10,3 +10,4 @@
 - [ ] hat drops items
 - [ ] item activation
 - [ ] one off tower items (special tower)
+- [ ] screenshake

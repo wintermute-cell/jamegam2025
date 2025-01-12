@@ -2,6 +2,7 @@ package towers
 
 import (
 	"image/color"
+	"jamegam/pkg/audio"
 	"jamegam/pkg/lib"
 	"log"
 
@@ -145,6 +146,7 @@ func (p *ProjectileExplosive) Update(em EnemyManager, pm ProjectileManager) {
 		e.SetHealth(newHealth)
 	}
 	p.exploding = true
+	audio.Controller.Play("aoe_tower_explosion", 0.05)
 
 }
 

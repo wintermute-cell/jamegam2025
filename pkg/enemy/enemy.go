@@ -148,7 +148,7 @@ func (e *Enemy) GetHealth() int {
 func (e *Enemy) SetHealth(health int) {
 	e.currentHealth = health
 	if e.currentHealth <= 0 {
-		audio.Controller.Play("test_deathsound", 0.2)
+		audio.Controller.Play("enemy_death_poof", 0.00)
 		e.destroyFunc()
 	}
 }

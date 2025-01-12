@@ -39,7 +39,8 @@ func (t *TowerIce) Update(em EnemyManager, pm ProjectileManager) error {
 		for _, e := range hitEnemies {
 			e.SetSpeedMod(speedMod, 2)
 		}
-		audio.Controller.Play("test_pew", 0)
+		audio.Controller.Play("ice_tower_shoot", 0.05)
+		// TODO: visual effect
 	}
 
 	return nil

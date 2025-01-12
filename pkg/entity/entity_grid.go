@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"image/color"
-	"jamegam/pkg/audio"
+	// "jamegam/pkg/audio"
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/spatialhash"
@@ -85,6 +85,13 @@ func (e *EntityGrid) AddProjectile(projectile towers.Projectile) int {
 // RemoveProjectile implements towers.ProjectileManager.
 func (e *EntityGrid) RemoveProjectile(idx int) {
 	e.projectiles.Remove(idx)
+}
+
+func (e *EntityGrid) NukeEnemies() {
+	e.enemies.FuncAll(func(idx int, enemy *enemy.Enemy) {
+		// TODO: play sound and animation
+		enemy.SetHealth(0)
+	})
 }
 
 // GetEnemies implements towers.EnemyManager.
@@ -187,8 +194,8 @@ func (e *EntityGrid) SpawnEnemy(enType enemy.EnemyType) {
 }
 
 func (e *EntityGrid) ShowMessage(message string) {
-	audio.Controller.Play("audio", 0.1)
-	e.currentMessage = message
+	// audio.Controller.Play("error", 0.0) // TODO: notification sound?
+	e.currentMessage = "> " + message
 	e.messageTimer = 3.0
 }
 
