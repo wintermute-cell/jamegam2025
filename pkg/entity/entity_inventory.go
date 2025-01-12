@@ -204,7 +204,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		cashTowerImage:        cashTowerImage,
 		superTowerImage:       superTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{DamageBuffMedium, CurrencyGiftSmall, CurrencyGiftMedium, CurrencyGiftLarge},
+		inventory:             [4]Item{NoItem, NoItem, NoItem, NoItem},
 		selectedItem:          -1,
 		damageBoostActive:     0,
 		speedBoostActive:      0,
@@ -220,7 +220,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		waveController:        wavecontroller.NewWaveController(100),
 		peace:                 true,
 		enemySpawnTimer:       0.0,
-		currentCurrency:       1_000, // TODO: balance this
+		currentCurrency:       500, // TODO: balance this
 		waveCounter:           0,
 		turretRangeIndicator:  true,
 		freeTurretSelected:    towers.TowerTypeNone,

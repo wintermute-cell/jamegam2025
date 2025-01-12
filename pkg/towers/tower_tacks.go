@@ -21,7 +21,7 @@ func NewTowerTacks(position lib.Vec2I) *TowerTacks {
 }
 
 func (t *TowerTacks) Price() int64 {
-	return 100
+	return 400
 }
 
 // Update implements Tower.

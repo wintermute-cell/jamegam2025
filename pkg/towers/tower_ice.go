@@ -21,7 +21,7 @@ func NewTowerIce(position lib.Vec2I) *TowerIce {
 }
 
 func (t *TowerIce) Price() int64 {
-	return 100
+	return 200
 }
 
 // Update implements Tower.

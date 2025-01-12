@@ -22,7 +22,7 @@ func NewTowerAoe(position lib.Vec2I) *TowerAoe {
 }
 
 func (t *TowerAoe) Price() int64 {
-	return 100
+	return 250
 }
 
 // Update implements Tower.

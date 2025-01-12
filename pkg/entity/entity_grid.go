@@ -176,7 +176,7 @@ func NewEntityGrid(
 		droppedMana:         0,
 		towerRangeIndicator: true,
 		selectedTower:       lib.NewVec2I(-1, -1),
-		Health:              10,
+		Health:              100,
 	}
 	return newEnt
 }
