@@ -5,6 +5,7 @@ go 1.23
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.6
 	github.com/solarlune/resound v0.3.0
+	golang.org/x/tools v0.25.0
 )
 
 require (

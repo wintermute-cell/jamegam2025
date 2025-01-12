@@ -19,11 +19,6 @@ import (
 // Ensure EntityInventory implements Entity
 var _ Entity = &EntityInventory{}
 
-type ItemSlot struct {
-	ItemType   Item
-	IsSelected bool
-}
-
 type Item int64
 
 const (
@@ -43,13 +38,17 @@ const (
 )
 
 type EntityInventory struct {
-	inventory       [4]ItemSlot
-	grid            *EntityGrid
-	waveController  *wavecontroller.WaveController
-	currentWave     []enemy.EnemyType
-	peace           bool
-	enemySpawnTimer float64
-	waveCounter     int64
+	inventory           [4]Item
+	selectedItem        int
+	grid                *EntityGrid
+	waveController      *wavecontroller.WaveController
+	currentWave         []enemy.EnemyType
+	peace               bool
+	enemySpawnTimer     float64
+	waveCounter         int64
+	freeTurretSelected  towers.TowerType
+	freeUpgradeSelected bool
+	maxUpgradeSelected  bool
 
 	hoveredTile          lib.Vec2I
 	hoveredTileHasTower  bool
@@ -85,6 +84,7 @@ type EntityInventory struct {
 	tackTowerImage        *ebiten.Image
 	iceTowerImage         *ebiten.Image
 	aoeTowerImage         *ebiten.Image
+	cashTowerImage        *ebiten.Image
 	hatImage              *ebiten.Image
 	textFace              *text.GoTextFace
 	playButtonImage       *ebiten.Image
@@ -137,21 +137,21 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	lib.Must(err)
 	upgradeIndicatorImage, _, err := ebitenutil.NewImageFromFile("upgradeindicator.png")
 	lib.Must(err)
+	cashTowerImage, _, err := ebitenutil.NewImageFromFile("test_towercash.png")
+	lib.Must(err)
 
 	newEnt := &EntityInventory{
-		tilePixels:         tilePixels,
-		buttonPixels:       96,
-		inventorySlotImage: inventorySlotImage,
-		basicTowerImage:    basicTowerImage,
-		tackTowerImage:     tackTowerImage,
-		iceTowerImage:      iceTowerImage,
-		aoeTowerImage:      aoeTowerImage,
-		hatImage:           hatImage,
-		inventory: [4]ItemSlot{
-			ItemSlot{ItemType: NoItem, IsSelected: false},
-			ItemSlot{ItemType: NoItem, IsSelected: false},
-			ItemSlot{ItemType: NoItem, IsSelected: false},
-			ItemSlot{ItemType: NoItem, IsSelected: false}},
+		tilePixels:            tilePixels,
+		buttonPixels:          96,
+		inventorySlotImage:    inventorySlotImage,
+		basicTowerImage:       basicTowerImage,
+		tackTowerImage:        tackTowerImage,
+		iceTowerImage:         iceTowerImage,
+		aoeTowerImage:         aoeTowerImage,
+		cashTowerImage:        cashTowerImage,
+		hatImage:              hatImage,
+		inventory:             [4]Item{BasicTower, IceTower, FreeUpgrade, CurrencyGift},
+		selectedItem:          -1,
 		grid:                  grid,
 		hoveredTileHasTower:   false,
 		hoveredTileIsOnPath:   false,
@@ -165,6 +165,9 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		currentCurrency:       1_000, // TODO: remove this
 		waveCounter:           0,
 		turretRangeIndicator:  true,
+		freeTurretSelected:    towers.TowerTypeNone,
+		freeUpgradeSelected:   false,
+		maxUpgradeSelected:    false,
 		inventoryBarImage:     inventoryBarImage,
 		playButtonImage:       playButtonImage,
 		removeButtonImage:     removeButtonImage,
@@ -238,6 +241,19 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
 	}
 
+	// Item Buttons
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(5, 0))) {
+			e.ActivateItem(0)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(6, 0))) {
+			e.ActivateItem(1)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(7, 0))) {
+			e.ActivateItem(2)
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(lib.NewVec2I(8, 0))) {
+			e.ActivateItem(3)
+		}
+	}
+
 	// Tower Buttons
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
@@ -270,10 +286,18 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	e.hoveredTile = lib.NewVec2I(mouseX/e.tilePixels, mouseY/e.tilePixels)
 	e.hoveredTileIsOnPath = e.isOnPath(e.hoveredTile)
 	_, e.hoveredTileHasTower = e.grid.towers[e.hoveredTile]
-	if e.blueprintSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
+	if (e.blueprintSelected != towers.TowerTypeNone || e.freeTurretSelected != towers.TowerTypeNone) && isInBounds(e.hoveredTile) && !e.hoveredTileIsOnPath && !e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			selectedTowerType := towers.TowerTypeBasic
+			free := false
+			if e.blueprintSelected != towers.TowerTypeNone {
+				selectedTowerType = e.blueprintSelected
+			} else if e.freeTurretSelected != towers.TowerTypeNone {
+				selectedTowerType = e.freeTurretSelected
+				free = true
+			}
 			var tower towers.Tower = nil
-			switch e.blueprintSelected {
+			switch selectedTowerType {
 			case towers.TowerTypeBasic:
 				tower = towers.NewTowerBasic(e.hoveredTile.Mul(e.tilePixels))
 			case towers.TowerTypeTacks:
@@ -287,8 +311,13 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				// case towers.TowerType...:
 			}
 			if tower != nil {
-				if e.currentCurrency >= tower.Price() {
-					e.currentCurrency -= tower.Price()
+				if free || e.currentCurrency >= tower.Price() {
+					if free {
+						e.RemoveItem(e.selectedItem)
+						e.ClearSelectedItem()
+					} else {
+						e.currentCurrency -= tower.Price()
+					}
 					e.grid.towers[e.hoveredTile] = tower
 					e.grid.selectedTower = e.hoveredTile
 				} else {
@@ -296,11 +325,15 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				}
 			}
 		}
-	} else if e.blueprintSelected != towers.TowerTypeNone && e.hoveredTileIsOnPath && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
+	} else if (e.blueprintSelected != towers.TowerTypeNone || e.freeTurretSelected != towers.TowerTypeNone) && e.hoveredTileIsOnPath && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && isInBounds(e.hoveredTile) {
 		e.grid.ShowMessage("Can't place tower on the path.")
 	} else if isInBounds(e.hoveredTile) && e.hoveredTileHasTower {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			e.blueprintSelected = towers.TowerTypeNone
+			if e.freeTurretSelected != towers.TowerTypeNone {
+				e.freeTurretSelected = towers.TowerTypeNone
+				e.selectedItem = -1
+			}
 			e.grid.selectedTower = e.hoveredTile
 		}
 	}
@@ -347,13 +380,14 @@ func (e *EntityInventory) Deinit(EntitySpawner) {
 }
 
 func (e *EntityInventory) Draw(screen *ebiten.Image) {
+	buttonOutline := color.RGBA{100, 255, 100, 255}
 
 	// Tower Placement
 	outlineColor := color.RGBA{100, 255, 100, 255}
 	if e.hoveredTileHasTower || e.hoveredTileIsOnPath {
 		outlineColor = color.RGBA{255, 100, 100, 255}
 	}
-	if e.blueprintSelected != towers.TowerTypeNone && isInBounds(e.hoveredTile) {
+	if (e.blueprintSelected != towers.TowerTypeNone || e.freeTurretSelected != towers.TowerTypeNone) && isInBounds(e.hoveredTile) {
 		vector.StrokeRect(screen,
 			float32(e.hoveredTile.X*e.tilePixels),
 			float32(e.hoveredTile.Y*e.tilePixels),
@@ -398,13 +432,35 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geom},
 	})
 
-	// Items
+	// Item Slots
 	for index, _ := range e.inventory {
 		itemPosition := e.getButtonPosition(lib.NewVec2I(index+5, 0))
 		geomItem := ebiten.GeoM{}
 		geomItem.Scale(4, 4)
 		geomItem.Translate(float64(itemPosition.X), float64(itemPosition.Y))
 		screen.DrawImage(e.inventorySlotImage, &ebiten.DrawImageOptions{GeoM: geomItem})
+	}
+
+	// Item Icons
+	for index, itemType := range e.inventory {
+		if itemType != NoItem {
+			itemPos := e.getButtonTowerIconPosition(lib.NewVec2I(index+5, 0))
+			geomIcon := ebiten.GeoM{}
+			geomIcon.Scale(4, 4)
+			geomIcon.Translate(float64(itemPos.X), float64(itemPos.Y))
+			screen.DrawImage(e.GetItemIcon(itemType), &ebiten.DrawImageOptions{GeoM: geomIcon})
+		}
+	}
+
+	// Item Slot Highlighting
+	if e.selectedItem == 0 {
+		e.highlightButton(e.getButtonPosition(lib.NewVec2I(5, 0)), buttonOutline, screen)
+	} else if e.selectedItem == 1 {
+		e.highlightButton(e.getButtonPosition(lib.NewVec2I(6, 0)), buttonOutline, screen)
+	} else if e.selectedItem == 2 {
+		e.highlightButton(e.getButtonPosition(lib.NewVec2I(7, 0)), buttonOutline, screen)
+	} else if e.selectedItem == 3 {
+		e.highlightButton(e.getButtonPosition(lib.NewVec2I(8, 0)), buttonOutline, screen)
 	}
 
 	// Tower Buttons
@@ -446,11 +502,9 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomT5im := ebiten.GeoM{}
 	geomT5im.Scale(4, 4)
 	geomT5im.Translate(float64(cashTowerImgPos.X), float64(cashTowerImgPos.Y))
-	screen.DrawImage(e.aoeTowerImage, &ebiten.DrawImageOptions{GeoM: geomT5im})
+	screen.DrawImage(e.cashTowerImage, &ebiten.DrawImageOptions{GeoM: geomT5im})
 
 	// Select Tower
-	buttonOutline := color.RGBA{100, 255, 100, 255}
-
 	if e.blueprintSelected == towers.TowerTypeBasic {
 		e.highlightButton(e.getButtonPosition(e.basicTowerButton), buttonOutline, screen)
 	} else if e.blueprintSelected == towers.TowerTypeTacks {
@@ -572,6 +626,10 @@ func (e *EntityInventory) selectTowerType(towerType towers.TowerType) {
 		e.blueprintSelected = towers.TowerTypeNone
 	} else {
 		e.blueprintSelected = towerType
+		if e.freeTurretSelected != towers.TowerTypeNone {
+			e.freeTurretSelected = towers.TowerTypeNone
+			e.selectedItem = -1
+		}
 	}
 }
 
@@ -639,26 +697,49 @@ func (e *EntityInventory) isTowerSelected() bool {
 	return e.grid.selectedTower.X != -1 && e.grid.selectedTower.Y != -1
 }
 
-func (e *EntityInventory) ActivateItem(itemSlot ItemSlot) {
-	switch itemSlot.ItemType {
+func (e *EntityInventory) ClearSelectedItem() {
+	e.freeUpgradeSelected = false
+	e.maxUpgradeSelected = false
+	e.freeTurretSelected = towers.TowerTypeNone
+	e.selectedItem = -1
+}
+
+func (e *EntityInventory) SelectFreeTurret(towerType towers.TowerType, itemNumber int) {
+	e.blueprintSelected = towers.TowerTypeNone
+	e.freeTurretSelected = towerType
+	e.selectedItem = itemNumber
+}
+
+func (e *EntityInventory) ActivateItem(itemNumber int) {
+	prevItem := e.selectedItem
+	e.ClearSelectedItem()
+	if prevItem == itemNumber {
+		return
+	}
+	switch e.inventory[itemNumber] {
 	case NoItem:
-		return
+		e.grid.ShowMessage("This slot is empty!")
 	case BasicTower:
-		return
+		e.SelectFreeTurret(towers.TowerTypeBasic, itemNumber)
 	case TackTower:
-		return
+		e.SelectFreeTurret(towers.TowerTypeTacks, itemNumber)
 	case IceTower:
-		return
+		e.SelectFreeTurret(towers.TowerTypeIce, itemNumber)
 	case AoeTower:
-		return
+		e.SelectFreeTurret(towers.TowerTypeAoe, itemNumber)
 	case ManaTower:
-		return
+		e.SelectFreeTurret(towers.TowerTypeCash, itemNumber)
 	case FreeUpgrade:
-		return
+		e.selectedItem = itemNumber
+		e.freeUpgradeSelected = true
 	case MaxUpgrade:
-		return
+		e.selectedItem = itemNumber
+		e.maxUpgradeSelected = true
 	case CurrencyGift:
-		return
+		newCurrency := 50 * e.waveCounter
+		e.currentCurrency += newCurrency
+		e.RemoveItem(itemNumber)
+		e.grid.ShowMessage(fmt.Sprintf("Received %d currency!", newCurrency))
 	case SpikeTrap:
 		return
 	case ClearEnemies:
@@ -673,9 +754,40 @@ func (e *EntityInventory) ActivateItem(itemSlot ItemSlot) {
 func (e *EntityInventory) RemoveItem(itemSlotNumber int) {
 	for i := itemSlotNumber; i < 4; i++ {
 		if i == 3 {
-			e.inventory[i] = ItemSlot{ItemType: NoItem, IsSelected: false}
+			e.inventory[i] = NoItem
 			return
 		}
-
+		e.inventory[i] = e.inventory[i+1]
 	}
+}
+
+func (e *EntityInventory) GetItemIcon(itemType Item) *ebiten.Image {
+	switch itemType {
+	case BasicTower:
+		return e.basicTowerImage
+	case TackTower:
+		return e.tackTowerImage
+	case IceTower:
+		return e.iceTowerImage
+	case AoeTower:
+		return e.aoeTowerImage
+	case ManaTower:
+		return e.cashTowerImage
+	case FreeUpgrade:
+		// TODO:
+		return e.damageButtonImage
+	case MaxUpgrade:
+		return e.firerateButtonImage
+	case CurrencyGift:
+		return e.removeButtonImage
+	case SpikeTrap:
+		return e.removeButtonImage
+	case ClearEnemies:
+		return e.removeButtonImage
+	case DamageBuff:
+		return e.removeButtonImage
+	case SpeedBuff:
+		return e.removeButtonImage
+	}
+	return e.removeButtonImage
 }
