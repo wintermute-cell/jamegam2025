@@ -655,13 +655,17 @@ func (e *EntityInventory) UpgradeSelectedTowerSpeed() {
 		return
 	}
 	tower := e.grid.towers[e.grid.selectedTower]
-	if tower.GetTotalUpgrades() >= 7 {
+	if tower.GetTotalUpgrades() >= 7 && !e.maxUpgradeSelected {
 		e.grid.ShowMessage("This tower has reached the maximum amount of total upgrades!")
 	} else if tower.GetSpeedUpgrades() >= 5 {
 		e.grid.ShowMessage("This tower has reached the maximum amount of speed upgrades!")
 	} else {
 		upgradePrice := int64(float64(tower.GetTotalUpgrades()+1) * float64(tower.Price()))
 		if e.currentCurrency >= upgradePrice || e.freeUpgradeSelected {
+			if e.maxUpgradeSelected && tower.GetTotalUpgrades() >= 7 {
+				e.RemoveItem(e.selectedItem)
+				e.ClearSelectedItem()
+			}
 			if e.freeUpgradeSelected {
 				e.RemoveItem(e.selectedItem)
 				e.ClearSelectedItem()
@@ -681,13 +685,17 @@ func (e *EntityInventory) UpgradeSelectedTowerDamage() {
 		return
 	}
 	tower := e.grid.towers[e.grid.selectedTower]
-	if tower.GetTotalUpgrades() >= 7 {
+	if tower.GetTotalUpgrades() >= 7 && !e.maxUpgradeSelected {
 		e.grid.ShowMessage("This tower has reached the maximum amount of total upgrades!")
 	} else if tower.GetDamageUpgrades() >= 5 {
 		e.grid.ShowMessage("This tower has reached the maximum amount of damage upgrades!")
 	} else {
 		upgradePrice := int64(float64(tower.GetTotalUpgrades()+1) * float64(tower.Price()))
 		if e.currentCurrency >= upgradePrice || e.freeUpgradeSelected {
+			if e.maxUpgradeSelected && tower.GetTotalUpgrades() >= 7 {
+				e.RemoveItem(e.selectedItem)
+				e.ClearSelectedItem()
+			}
 			if e.freeUpgradeSelected {
 				e.RemoveItem(e.selectedItem)
 				e.ClearSelectedItem()
