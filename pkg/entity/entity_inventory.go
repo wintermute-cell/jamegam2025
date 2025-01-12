@@ -63,10 +63,10 @@ type EntityInventory struct {
 	freeUpgradeSelected bool
 	maxUpgradeSelected  bool
 
-	speedBoostActive    bool
-	speedBoostDuration  int
-	damageBoostActive   bool
-	damageBoostDuration int
+	speedBoostActive    int
+	speedBoostDuration  float32
+	damageBoostActive   int
+	damageBoostDuration float32
 
 	hoveredTile          lib.Vec2I
 	hoveredTileHasTower  bool
@@ -168,10 +168,10 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		aoeTowerImage:         aoeTowerImage,
 		cashTowerImage:        cashTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{ClearEnemies, ClearEnemies, ClearEnemies, ClearEnemies},
+		inventory:             [4]Item{SpeedBuffMedium, SpeedBuffSmall, DamageBuffMedium, DamageBuffSmall},
 		selectedItem:          -1,
-		damageBoostActive:     false,
-		speedBoostActive:      false,
+		damageBoostActive:     0,
+		speedBoostActive:      0,
 		damageBoostDuration:   0,
 		speedBoostDuration:    0,
 		grid:                  grid,
@@ -229,6 +229,22 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		} else {
 			e.peace = true
 		}
+	}
+
+	dt := lib.Dt()
+	if e.speedBoostActive != 0 {
+		e.speedBoostDuration -= float32(dt)
+		if e.speedBoostDuration <= 0 {
+			e.speedBoostActive = 0
+		}
+	}
+
+	if e.damageBoostActive != 0 {
+		e.damageBoostDuration -= float32(dt)
+		if e.damageBoostDuration <= 0 {
+			e.damageBoostActive = 0
+		}
+
 	}
 
 	e.currentMana += e.grid.droppedMana
@@ -482,8 +498,22 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	})
 
 	// Damage Boost Display
+	geomDamage := ebiten.GeoM{}
+	geomDamage.Translate(float64(12*e.tilePixels+60), float64(12*e.tilePixels+118+26))
+	if e.damageBoostActive != 0 {
+		text.Draw(screen, fmt.Sprintf("DMG-%d: %d", e.damageBoostActive, int(e.damageBoostDuration)), e.textFace, &text.DrawOptions{
+			DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomDamage},
+		})
+	}
 
 	// Speed Boost Display
+	geomSpeed := ebiten.GeoM{}
+	geomSpeed.Translate(float64(12*e.tilePixels+60), float64(12*e.tilePixels+118+24+20+28))
+	if e.speedBoostActive != 0 {
+		text.Draw(screen, fmt.Sprintf("SPD-%d: %d", e.speedBoostActive, int(e.speedBoostDuration)), e.textFace, &text.DrawOptions{
+			DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomSpeed},
+		})
+	}
 
 	// Item Slots
 	for index, _ := range e.inventory {
@@ -843,6 +873,8 @@ func (e *EntityInventory) DamageBuff(level int, itemNumber int) {
 	e.grid.BuffAllTowersDamage(float32(damageModifier), float32(damageDuration))
 	e.RemoveItem(itemNumber)
 	e.grid.ShowMessage(fmt.Sprintf("Activated Level %d damage buff for %d seconds!", level, damageDuration))
+	e.damageBoostActive = level
+	e.damageBoostDuration = float32(damageDuration)
 }
 
 func (e *EntityInventory) SpeedBuff(level int, itemNumber int) {
@@ -859,6 +891,8 @@ func (e *EntityInventory) SpeedBuff(level int, itemNumber int) {
 	e.grid.BuffAllTowersSpeed(float32(speedModifier), float32(speedDuration))
 	e.RemoveItem(itemNumber)
 	e.grid.ShowMessage(fmt.Sprintf("Activated Level %d speed buff for %d seconds!", level, speedDuration))
+	e.speedBoostActive = level
+	e.speedBoostDuration = float32(speedDuration)
 }
 
 func (e *EntityInventory) CurrencyGift(level int, itemNumber int) {
