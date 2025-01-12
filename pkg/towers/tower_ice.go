@@ -14,7 +14,7 @@ type TowerIce struct {
 
 func NewTowerIce(position lib.Vec2I) *TowerIce {
 	return &TowerIce{
-		Towercore: NewTowercore(1.0, 90.0, spriteTowerIce, position),
+		Towercore: NewTowercore(3.0, 90.0, spriteTowerIce, position),
 	}
 }
 
@@ -24,17 +24,16 @@ func (t *TowerIce) Price() int64 {
 
 // Update implements Tower.
 func (t *TowerIce) Update(em EnemyManager, pm ProjectileManager) error {
-	enemies, _ := em.GetEnemies(t.position.ToVec2(), t.radius)
-	hitEnemies := []*enemy.Enemy{} // only at max 8 enemies can be hit
+	enemies, _ := em.GetEnemies(t.position.ToVec2().Add(lib.NewVec2(32, 32)), t.radius)
+	hitEnemies := []*enemy.Enemy{} // only at max 6 enemies can be hit
 	for i, e := range enemies {
-		if i >= 8 {
+		if i >= 6 {
 			break
 		}
 		hitEnemies = append(hitEnemies, e)
 	}
 
-	// TODO: if there is an ememy in range...
-	if len(hitEnemies) > 0 && t.ShouldFire(lib.Dt()) {
+	if t.ShouldFire(lib.Dt()) && len(hitEnemies) > 0 {
 		// Spawn projectiles in a circle around the tower
 		speedMod := float32(0.5 - (0.05 * float64(t.speedUpgrades+t.damageUpgrades)))
 		for _, e := range hitEnemies {

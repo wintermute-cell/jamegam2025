@@ -52,13 +52,13 @@ func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress 
 	switch enemyType {
 	case EnemyTypeBasic:
 		ret.currentHealth = 1
-		ret.currentSpeed = 1
+		ret.currentSpeed = 1.6
 	case EnemyTypeFast:
 		ret.currentHealth = 1
-		ret.currentSpeed = 3
+		ret.currentSpeed = 4
 	case EnemyTypeTank:
 		ret.currentHealth = 5
-		ret.currentSpeed = 0.8
+		ret.currentSpeed = 1.1
 	default:
 		panic("Unknown enemy type")
 	}
@@ -73,7 +73,7 @@ func (e *Enemy) GetSprite() *ebiten.Image {
 	if fps > 1/2000 {
 		dt = 1.0 / fps
 	}
-	e.spriteSheetTimer += float32(dt) * e.currentSpeed
+	e.spriteSheetTimer += float32(dt) * (e.currentSpeed * 1.2)
 	if e.spriteSheetTimer > 0.1 {
 		e.spriteSheetTimer = 0
 		mod := 4

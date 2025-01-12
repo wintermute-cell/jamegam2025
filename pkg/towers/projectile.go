@@ -3,6 +3,7 @@ package towers
 import (
 	"image/color"
 	"jamegam/pkg/lib"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -61,6 +62,7 @@ func (p *ProjectileBasic) Update(em EnemyManager, pm ProjectileManager) {
 		newHealth := e.GetHealth() - p.damage
 		e.SetHealth(newHealth)
 		pm.RemoveProjectile(p.SelfIdx)
+		log.Println("Hit enemy")
 		return
 		// if newHealth <= 0 {
 		// }
@@ -71,7 +73,8 @@ func (p *ProjectileBasic) Update(em EnemyManager, pm ProjectileManager) {
 func (p *ProjectileBasic) Draw(screen *ebiten.Image) {
 	geom := ebiten.GeoM{}
 	geom.Translate(float64(p.position.X), float64(p.position.Y))
-	vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 5, color.RGBA{255, 255, 0, 255}, false)
+	vector.StrokeCircle(screen, float32(p.position.X), float32(p.position.Y), p.radius, 1, color.RGBA{255, 255, 0, 255}, false)
+	vector.DrawFilledCircle(screen, float32(p.position.X), float32(p.position.Y), 5, color.RGBA{0, 255, 0, 255}, false)
 	// TODO: draw shbounds box
 }
 

@@ -100,8 +100,9 @@ func (e *EntityGrid) GetEnemies(point lib.Vec2, radius float32) ([]*enemy.Enemy,
 		lastIdx, nextIdx := enemy.GetPathNodes()
 		last := e.enemyPath[lastIdx].ToVec2().Mul(float32(e.tilePixels))
 		next := e.enemyPath[nextIdx].ToVec2().Mul(float32(e.tilePixels))
-		pos := last.Lerp(next, float32(enemy.GetPathProgress()))
-		if pos.Dist(point) < float32(radius)+32 {
+		pos := last.Lerp(next, float32(enemy.GetPathProgress())).Add(lib.NewVec2(32, 32))
+		var enemyRadius float32 = 24
+		if pos.Dist(point) < float32(radius)+enemyRadius {
 			ret = append(ret, enemy)
 		}
 	}
@@ -299,8 +300,8 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	e.enemies.FuncAll(func(_ int, enem *enemy.Enemy) {
 		progress := enem.GetPathProgress()
 		lastIdx, nextIdx := enem.GetPathNodes()
-		last := e.enemyPath[lastIdx].ToVec2()
-		next := e.enemyPath[nextIdx].ToVec2()
+		last := e.enemyPath[lastIdx].ToVec2().Mul(float32(e.tilePixels))
+		next := e.enemyPath[nextIdx].ToVec2().Mul(float32(e.tilePixels))
 		pos := last.Lerp(next, float32(progress))
 
 		newWander := enem.GetWander() + float32(lib.Dt())*enem.WanderVelocity
@@ -314,7 +315,7 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 
 		geom := ebiten.GeoM{}
 		geom.Scale(4, 4)
-		geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
+		geom.Translate(float64(pos.X), float64(pos.Y))
 		geom.Translate(float64(wanderDirection.X), float64(wanderDirection.Y))
 		geom.Translate(0, math.Sin(float64(newBounce))*5)
 		screen.DrawImage(enem.GetSprite(), &ebiten.DrawImageOptions{
@@ -326,6 +327,15 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 				GeoM: geom,
 			})
 		}
+
+		// Draw Hitbox
+		vector.StrokeCircle(screen,
+			float32(pos.X)+32,
+			float32(pos.Y)+32,
+			24,
+			1,
+			color.RGBA{255, 0, 0, 255},
+			false)
 
 		geom.Reset()
 		geom.Scale(4, 4)

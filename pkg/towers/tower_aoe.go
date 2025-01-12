@@ -14,7 +14,7 @@ type TowerAoe struct {
 
 func NewTowerAoe(position lib.Vec2I) *TowerAoe {
 	return &TowerAoe{
-		Towercore: NewTowercore(2.0, 195.0, spriteTowerAoe, position),
+		Towercore: NewTowercore(3.0, 195.0, spriteTowerAoe, position),
 	}
 }
 
@@ -24,7 +24,7 @@ func (t *TowerAoe) Price() int64 {
 
 // Update implements Tower.
 func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
-	enemies, path := em.GetEnemies(t.position.ToVec2(), t.radius)
+	enemies, path := em.GetEnemies(t.position.ToVec2().Add(lib.NewVec2(32, 32)), t.radius)
 	var furthestProgress float64 = -1
 	var furthestEnemy *enemy.Enemy
 	for _, e := range enemies {
@@ -36,7 +36,7 @@ func (t *TowerAoe) Update(em EnemyManager, pm ProjectileManager) error {
 	}
 
 	// TODO: if there is an ememy in range...
-	if furthestEnemy != nil && t.ShouldFire(lib.Dt()) {
+	if t.ShouldFire(lib.Dt()) && furthestEnemy != nil {
 		lastIdx, nextIdx := furthestEnemy.GetPathNodes()
 		last := path[lastIdx].ToVec2().Mul(64)
 		next := path[nextIdx].ToVec2().Mul(64)

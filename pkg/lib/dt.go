@@ -13,5 +13,5 @@ func Dt() float64 {
 		return 1.0 / 60.0
 	}
 
-	return realdt
+	return realdt / 1.0
 }

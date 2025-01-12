@@ -7,6 +7,7 @@ import (
 	"jamegam/pkg/lib"
 	"jamegam/pkg/towers"
 	"jamegam/pkg/wave_controller"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -171,7 +172,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		e.enemySpawnTimer += dt
 		if len(e.currentWave) > 0 {
 			if e.enemySpawnTimer > 0.8 {
-				e.enemySpawnTimer = 0
+				e.enemySpawnTimer = (rand.Float64() - 0.5) * 0.7
 				e.grid.SpawnEnemy(e.currentWave[0])
 				e.currentWave = e.currentWave[1:]
 			}

@@ -24,7 +24,7 @@ func (t *TowerTacks) Price() int64 {
 
 // Update implements Tower.
 func (t *TowerTacks) Update(em EnemyManager, pm ProjectileManager) error {
-	enemies, _ := em.GetEnemies(t.position.ToVec2(), t.radius)
+	enemies, _ := em.GetEnemies(t.position.ToVec2().Add(lib.NewVec2(32, 32)), t.radius)
 	var furthestProgress float64 = -1
 	var furthestEnemy *enemy.Enemy
 	for _, e := range enemies {
@@ -35,8 +35,7 @@ func (t *TowerTacks) Update(em EnemyManager, pm ProjectileManager) error {
 		}
 	}
 
-	// TODO: if there is an ememy in range...
-	if furthestEnemy != nil && t.ShouldFire(lib.Dt()) {
+	if t.ShouldFire(lib.Dt()) && furthestEnemy != nil {
 		// Spawn projectiles in a circle around the tower
 		for i := 0; i < 8; i++ {
 			angle := float32(i) * 45
