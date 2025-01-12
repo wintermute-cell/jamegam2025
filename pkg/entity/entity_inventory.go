@@ -239,14 +239,14 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	}
 
 	dt := lib.Dt()
-	if e.speedBoostActive != 0 {
+	if e.speedBoostActive != 0 && !e.peace {
 		e.speedBoostDuration -= float32(dt)
 		if e.speedBoostDuration <= 0 {
 			e.speedBoostActive = 0
 		}
 	}
 
-	if e.damageBoostActive != 0 {
+	if e.damageBoostActive != 0 && !e.peace {
 		e.damageBoostDuration -= float32(dt)
 		if e.damageBoostDuration <= 0 {
 			e.damageBoostActive = 0
@@ -494,16 +494,23 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 
 	// Currency Display
 	geom := ebiten.GeoM{}
-	geom.Translate(float64(20), float64(12*e.tilePixels+118+24+20+28))
+	geom.Translate(float64(20), float64(12*e.tilePixels+118+24+28+28))
 	text.Draw(screen, fmt.Sprintf("Currency: %d", e.currentCurrency), e.textFace, &text.DrawOptions{
 		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geom},
 	})
 
 	// Wave Display
 	geomWave := ebiten.GeoM{}
-	geomWave.Translate(float64(20), float64(12*e.tilePixels+118+26))
+	geomWave.Translate(float64(20), float64(12*e.tilePixels+118+16))
 	text.Draw(screen, fmt.Sprintf("Wave: %d", e.waveCounter), e.textFace, &text.DrawOptions{
 		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomWave},
+	})
+
+	// Health Display
+	geomHealth := ebiten.GeoM{}
+	geomHealth.Translate(20, float64(12*e.tilePixels+118+10+24+14))
+	text.Draw(screen, fmt.Sprintf("Health: %d", e.grid.Health), e.textFace, &text.DrawOptions{
+		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomHealth},
 	})
 
 	// Damage Boost Display
@@ -523,13 +530,6 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 			DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomSpeed},
 		})
 	}
-
-	// Health Display
-	geomHealth := ebiten.GeoM{}
-	geomHealth.Translate(10, 10)
-	text.Draw(screen, fmt.Sprintf("Health: %d", e.grid.Health), e.textFace, &text.DrawOptions{
-		DrawImageOptions: ebiten.DrawImageOptions{GeoM: geomHealth},
-	})
 
 	// Item Slots
 	for index, _ := range e.inventory {
