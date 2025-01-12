@@ -8,6 +8,7 @@ import (
 	"jamegam/pkg/lib"
 	"jamegam/pkg/pauser"
 	"jamegam/pkg/sprites"
+	"math"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -31,18 +32,27 @@ type Game struct {
 	grid      *entity.EntityGrid
 	inventory *entity.EntityInventory
 
-	isMainMenu bool
+	isMainMenu         bool
+	mainMenuButtonAnim float64
 }
 
 // NewGame creates a new Game instance
 func NewGame() *Game {
-	g := &Game{}
+	g := &Game{
+		isMainMenu: true,
+	}
 	g.Init()
 	return g
 }
 
 // Init initializes the game.
 func (g *Game) Init() {
+	// TODO:
+	audio.Controller.PlayMainMenuOst()
+}
+
+// Called by main menu
+func (g *Game) LateInit() {
 	audio.Controller.PlayOst()
 	g.tileConfig = TileConfig{16, 12, 64}
 	mapDef := `
@@ -68,12 +78,26 @@ pppppppppppppp.p
 	g.AddEntity(g.inventory)
 }
 
-// Called by main menu
-func (g *Game) LateInit() error
-}
-
 // Update is part of the ebiten.Game interface.
 func (g *Game) Update() error {
+
+	if g.isMainMenu {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) ||
+			inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyEnter) ||
+			inpututil.IsKeyJustPressed(ebiten.KeySpace) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyW) {
+			audio.Controller.StopMainMenuOst()
+			g.isMainMenu = false
+			g.LateInit()
+		}
+		return nil
+	}
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		pauser.IsPaused = !pauser.IsPaused
 	}
@@ -108,21 +132,32 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 	fakeScreen.Fill(color.Black)
 
-	for _, entity := range g.entities {
-		entity.Draw(fakeScreen)
-	}
+	if !g.isMainMenu {
+		for _, entity := range g.entities {
+			entity.Draw(fakeScreen)
+		}
 
-	if pauser.IsPaused {
-		vector.DrawFilledRect(fakeScreen, 0, 0, 2000, 2000, color.RGBA{0, 0, 0, 100}, false)
+		if pauser.IsPaused {
+			vector.DrawFilledRect(fakeScreen, 0, 0, 2000, 2000, color.RGBA{0, 0, 0, 100}, false)
+			geom := ebiten.GeoM{}
+			geom.Translate(312, 300)
+			fakeScreen.DrawImage(sprites.SpritePauseMenu, &ebiten.DrawImageOptions{
+				GeoM: geom,
+			})
+
+			// Button hitboxes
+			// vector.DrawFilledRect(fakeScreen, 32+312, 20+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
+			// vector.DrawFilledRect(fakeScreen, 32+312, 136+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
+		}
+
+	} else {
 		geom := ebiten.GeoM{}
-		geom.Translate(312, 300)
-		fakeScreen.DrawImage(sprites.SpritePauseMenu, &ebiten.DrawImageOptions{
+		geom.Translate(0, math.Sin(g.mainMenuButtonAnim)*5)
+		g.mainMenuButtonAnim += 1 * lib.Dt()
+		fakeScreen.DrawImage(sprites.SpriteMainMenu, &ebiten.DrawImageOptions{})
+		fakeScreen.DrawImage(sprites.SpriteMainMenuButton, &ebiten.DrawImageOptions{
 			GeoM: geom,
 		})
-
-		// Button hitboxes
-		// vector.DrawFilledRect(fakeScreen, 32+312, 20+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
-		// vector.DrawFilledRect(fakeScreen, 32+312, 136+300, 336, 88, color.RGBA{0, 0, 0, 100}, false)
 	}
 
 	ebitenutil.DebugPrint(fakeScreen, fmt.Sprintf("dt: %f", lib.Dt()))

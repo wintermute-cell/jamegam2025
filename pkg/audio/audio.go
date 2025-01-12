@@ -20,6 +20,7 @@ type AudioController struct {
 	sounds       map[string][]byte
 
 	ostPlayer *audio.Player
+	mmPlayer  *audio.Player
 	isMuted   bool
 }
 
@@ -82,6 +83,24 @@ func (a *AudioController) PlayOst() {
 	// audio.NewInfiniteLoop(player, streamReader.Length()).Play()
 	// player.SetVolume(0.5)
 	// player.Play()
+}
+
+func (a *AudioController) PlayMainMenuOst() {
+	ostReader, err := ebitenutil.OpenFile("music_menu.ogg")
+	lib.Must(err)
+	streamReader, err := vorbis.Decode(a.audioCtx, ostReader)
+	lib.Must(err)
+	loop := audio.NewInfiniteLoop(streamReader, streamReader.Length())
+	player, err := a.audioCtx.NewPlayer(loop)
+	lib.Must(err)
+	player.SetVolume(0.5)
+	player.Play()
+	a.mmPlayer = player
+}
+
+func (a *AudioController) StopMainMenuOst() {
+	a.mmPlayer.Pause()
+	a.mmPlayer.Close()
 }
 
 func (a *AudioController) ToggleMute() {

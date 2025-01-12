@@ -11,7 +11,9 @@ var (
 	SpriteMap     *ebiten.Image
 	SpriteOverMap *ebiten.Image
 
-	SpritePauseMenu *ebiten.Image
+	SpritePauseMenu      *ebiten.Image
+	SpriteMainMenu       *ebiten.Image
+	SpriteMainMenuButton *ebiten.Image
 )
 
 func init() {
@@ -24,5 +26,11 @@ func init() {
 	lib.Must(err)
 
 	SpritePauseMenu, _, err = ebitenutil.NewImageFromFile("pausemenu.png")
+	lib.Must(err)
+
+	SpriteMainMenu, _, err = ebitenutil.NewImageFromFile("mainmenu.png")
+	lib.Must(err)
+
+	SpriteMainMenuButton, _, err = ebitenutil.NewImageFromFile("mainmenu_button.png")
 	lib.Must(err)
 }

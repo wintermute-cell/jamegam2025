@@ -346,18 +346,23 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if isInButton(mouseX, mouseY, e.getButtonPosition(e.basicTowerButton)) {
 			audio.Controller.Play("click", 0.00)
+			e.grid.ShowMessage(fmt.Sprintf("Cost: 100"))
 			e.selectTowerType(towers.TowerTypeBasic)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.tackTowerButton)) {
 			audio.Controller.Play("click", 0.00)
+			e.grid.ShowMessage(fmt.Sprintf("Cost: 100"))
 			e.selectTowerType(towers.TowerTypeTacks)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.iceTowerButton)) {
 			audio.Controller.Play("click", 0.00)
+			e.grid.ShowMessage(fmt.Sprintf("Cost: 100"))
 			e.selectTowerType(towers.TowerTypeIce)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.aoeTowerButton)) {
 			audio.Controller.Play("click", 0.00)
+			e.grid.ShowMessage(fmt.Sprintf("Cost: 100"))
 			e.selectTowerType(towers.TowerTypeAoe)
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.superTowerButton)) {
 			audio.Controller.Play("click", 0.00)
+			e.grid.ShowMessage(fmt.Sprintf("Cost: 100"))
 			e.selectTowerType(towers.TowerTypeSuper)
 		}
 	}
