@@ -114,6 +114,13 @@ type EntityInventory struct {
 	firerateButtonImage   *ebiten.Image
 	inventoryBarImage     *ebiten.Image
 	upgradeIndicatorImage *ebiten.Image
+	freeUpgradeImage      *ebiten.Image
+	maxUpgradeImage       *ebiten.Image
+	bombImage             *ebiten.Image
+	speedSmallImage       *ebiten.Image
+	speedMediumImage      *ebiten.Image
+	damageSmallImage      *ebiten.Image
+	damageMediumImage     *ebiten.Image
 }
 
 func isInBounds(vect lib.Vec2I) bool {
@@ -139,6 +146,23 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 	aoeTowerImage := towers.SpritesheetTowerAoe.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
 	cashTowerImage := towers.SpritesheetTowerCash.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
 	superTowerImage := towers.SpritesheetTowerSuper.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image)
+
+	freeUpgradeImage, _, err := ebitenutil.NewImageFromFile("freeUpgrade.png")
+	lib.Must(err)
+	maxUpgradeImage, _, err := ebitenutil.NewImageFromFile("maxUpgrade.png")
+	lib.Must(err)
+	bombImage, _, err := ebitenutil.NewImageFromFile("bomb.png")
+	lib.Must(err)
+
+	speedSmallImage, _, err := ebitenutil.NewImageFromFile("speedSmall.png")
+	lib.Must(err)
+	speedMediumImage, _, err := ebitenutil.NewImageFromFile("speedMedium.png")
+	lib.Must(err)
+
+	damageSmallImage, _, err := ebitenutil.NewImageFromFile("damageSmall.png")
+	lib.Must(err)
+	damageMediumImage, _, err := ebitenutil.NewImageFromFile("damageMedium.png")
+	lib.Must(err)
 
 	hatImage, _, err := ebitenutil.NewImageFromFile("test_hat.png")
 	lib.Must(err)
@@ -170,7 +194,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		cashTowerImage:        cashTowerImage,
 		superTowerImage:       superTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{ManaTower, ManaTower, DamageBuffMedium, DamageBuffSmall},
+		inventory:             [4]Item{DamageBuffMedium, SpeedBuffSmall, DamageBuffSmall, SpeedBuffMedium},
 		selectedItem:          -1,
 		damageBoostActive:     0,
 		speedBoostActive:      0,
@@ -198,6 +222,13 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		damageButtonImage:     damageButtonImage,
 		firerateButtonImage:   firerateButtonImage,
 		upgradeIndicatorImage: upgradeIndicatorImage,
+		freeUpgradeImage:      freeUpgradeImage,
+		maxUpgradeImage:       maxUpgradeImage,
+		bombImage:             bombImage,
+		speedSmallImage:       speedSmallImage,
+		speedMediumImage:      speedMediumImage,
+		damageSmallImage:      damageSmallImage,
+		damageMediumImage:     damageMediumImage,
 		basicTowerButton:      lib.NewVec2I(2, 1),
 		tackTowerButton:       lib.NewVec2I(3, 1),
 		iceTowerButton:        lib.NewVec2I(4, 1),
@@ -955,20 +986,26 @@ func (e *EntityInventory) GetItemIcon(itemType Item) *ebiten.Image {
 		return e.aoeTowerImage
 	case ManaTower:
 		return e.cashTowerImage
+	case SuperTower:
+		return e.superTowerImage
 	case FreeUpgrade:
-		// TODO:
-		return e.damageButtonImage
+		return e.freeUpgradeImage
 	case MaxUpgrade:
-		return e.firerateButtonImage
+		return e.maxUpgradeImage
 	case CurrencyGiftSmall:
 	case CurrencyGiftMedium:
 	case CurrencyGiftLarge:
 	case BombTrap:
 	case ClearEnemies:
+		return e.bombImage
 	case DamageBuffSmall:
+		return e.damageSmallImage
 	case DamageBuffMedium:
+		return e.damageMediumImage
 	case SpeedBuffSmall:
+		return e.speedSmallImage
 	case SpeedBuffMedium:
+		return e.speedMediumImage
 	}
 	return e.removeButtonImage
 }
