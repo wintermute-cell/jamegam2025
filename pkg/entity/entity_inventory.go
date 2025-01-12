@@ -37,6 +37,7 @@ const (
 	IceTower
 	AoeTower
 	ManaTower
+	SuperTower
 	FreeUpgrade
 	MaxUpgrade
 	CurrencyGiftSmall
@@ -87,7 +88,7 @@ type EntityInventory struct {
 	tackTowerButton   lib.Vec2I
 	iceTowerButton    lib.Vec2I
 	aoeTowerButton    lib.Vec2I
-	cashTowerButton   lib.Vec2I
+	superTowerButton  lib.Vec2I
 	blueprintSelected towers.TowerType
 
 	// Menu Buttons
@@ -102,6 +103,7 @@ type EntityInventory struct {
 	tackTowerImage        *ebiten.Image
 	iceTowerImage         *ebiten.Image
 	aoeTowerImage         *ebiten.Image
+	superTowerImage       *ebiten.Image
 	cashTowerImage        *ebiten.Image
 	hatImage              *ebiten.Image
 	textFace              *text.GoTextFace
@@ -168,7 +170,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		aoeTowerImage:         aoeTowerImage,
 		cashTowerImage:        cashTowerImage,
 		hatImage:              hatImage,
-		inventory:             [4]Item{SpeedBuffMedium, SpeedBuffSmall, DamageBuffMedium, DamageBuffSmall},
+		inventory:             [4]Item{ManaTower, ManaTower, DamageBuffMedium, DamageBuffSmall},
 		selectedItem:          -1,
 		damageBoostActive:     0,
 		speedBoostActive:      0,
@@ -200,7 +202,7 @@ func NewEntityInventory(tilePixels int, grid *EntityGrid) *EntityInventory {
 		tackTowerButton:       lib.NewVec2I(3, 1),
 		iceTowerButton:        lib.NewVec2I(4, 1),
 		aoeTowerButton:        lib.NewVec2I(5, 1),
-		cashTowerButton:       lib.NewVec2I(6, 1),
+		superTowerButton:      lib.NewVec2I(6, 1),
 		playButton:            lib.NewVec2I(0, 0),
 		removeButton:          lib.NewVec2I(1, 0),
 		damageButton:          lib.NewVec2I(2, 0),
@@ -305,7 +307,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.aoeTowerButton)) {
 			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeAoe)
-		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.cashTowerButton)) {
+		} else if isInButton(mouseX, mouseY, e.getButtonPosition(e.superTowerButton)) {
 			audio.Controller.Play("click", 0.00)
 			e.selectTowerType(towers.TowerTypeSuper)
 		}
@@ -355,6 +357,8 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 				tower = towers.NewTowerAoe(e.hoveredTile.Mul(e.tilePixels))
 			case towers.TowerTypeSuper:
 				tower = towers.NewTowerSuper(e.hoveredTile.Mul(e.tilePixels))
+			case towers.TowerTypeCash:
+				tower = towers.NewTowerCash(e.hoveredTile.Mul(e.tilePixels))
 			}
 			if tower != nil {
 				audio.Controller.Play("build_tower", 0.10)
@@ -581,7 +585,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	geomT4im.Translate(float64(aoeTowerImgPos.X), float64(aoeTowerImgPos.Y))
 	screen.DrawImage(e.aoeTowerImage, &ebiten.DrawImageOptions{GeoM: geomT4im})
 	// Super Tower
-	cashTowerImgPos := e.getButtonTowerIconPosition(e.cashTowerButton)
+	cashTowerImgPos := e.getButtonTowerIconPosition(e.superTowerButton)
 	geomT5im := ebiten.GeoM{}
 	geomT5im.Scale(4, 4)
 	geomT5im.Translate(float64(cashTowerImgPos.X), float64(cashTowerImgPos.Y))
@@ -597,7 +601,7 @@ func (e *EntityInventory) Draw(screen *ebiten.Image) {
 	} else if e.blueprintSelected == towers.TowerTypeAoe {
 		e.highlightButton(e.getButtonPosition(e.aoeTowerButton), buttonOutline, screen)
 	} else if e.blueprintSelected == towers.TowerTypeSuper {
-		e.highlightButton(e.getButtonPosition(e.cashTowerButton), buttonOutline, screen)
+		e.highlightButton(e.getButtonPosition(e.superTowerButton), buttonOutline, screen)
 	}
 
 	// Menu Buttons
@@ -831,6 +835,8 @@ func (e *EntityInventory) ActivateItem(itemNumber int) {
 		e.SelectFreeTurret(towers.TowerTypeAoe, itemNumber)
 	case ManaTower:
 		e.SelectFreeTurret(towers.TowerTypeCash, itemNumber)
+	case SuperTower:
+		e.SelectFreeTurret(towers.TowerTypeSuper, itemNumber)
 	case FreeUpgrade:
 		e.selectedItem = itemNumber
 		e.freeUpgradeSelected = true
@@ -1003,7 +1009,7 @@ func (e *EntityInventory) GenerateRandomItem(rarity ItemRarity) {
 		items := []Item{BasicTower, IceTower, CurrencyGiftSmall, DamageBuffSmall, SpeedBuffSmall}
 		e.AddItem(items[rand.Intn(len(items))])
 	case RareItem:
-		items := []Item{TackTower, AoeTower, FreeUpgrade, CurrencyGiftMedium, DamageBuffMedium, SpeedBuffMedium}
+		items := []Item{TackTower, AoeTower, SuperTower, FreeUpgrade, CurrencyGiftMedium, DamageBuffMedium, SpeedBuffMedium}
 		e.AddItem(items[rand.Intn(len(items))])
 	case LegendaryItem:
 		items := []Item{ManaTower, MaxUpgrade, ClearEnemies, CurrencyGiftLarge}
