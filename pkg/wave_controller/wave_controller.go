@@ -33,7 +33,7 @@ func (e *WaveController) GenerateNextWave() []enemy.EnemyType {
 	for currentCost = 0; currentCost < e.resources; {
 		budget := e.resources - currentCost
 		random := rand.Intn(100)
-		if random < 50 {
+		if random < 75 {
 			// Add basic enemy
 			next_enemies = append(next_enemies, enemy.EnemyTypeBasic)
 			currentCost += 1

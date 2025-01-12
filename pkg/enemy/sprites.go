@@ -11,6 +11,10 @@ var (
 	SpriteEnemyBasic *ebiten.Image
 	SpriteEnemyFast  *ebiten.Image
 	SpriteEnemyTank  *ebiten.Image
+
+	SpriteEnemyBasicSheet *ebiten.Image
+	SpriteEnemyFastSheet  *ebiten.Image
+	SpriteEnemyTankSheet  *ebiten.Image
 )
 
 var (
@@ -25,11 +29,17 @@ func init() {
 
 	SpriteEnemyBasic, _, err = ebitenutil.NewImageFromFile("test_enemy.png")
 	lib.Must(err)
+	SpriteEnemyBasicSheet, _, err = ebitenutil.NewImageFromFile("sheet_4_rat.png")
+	lib.Must(err)
 
 	SpriteEnemyFast, _, err = ebitenutil.NewImageFromFile("test_enemyfast.png")
 	lib.Must(err)
+	SpriteEnemyFastSheet, _, err = ebitenutil.NewImageFromFile("sheet_5_bat.png")
+	lib.Must(err)
 
 	SpriteEnemyTank, _, err = ebitenutil.NewImageFromFile("test_enemytank.png")
+	lib.Must(err)
+	SpriteEnemyTankSheet, _, err = ebitenutil.NewImageFromFile("sheet_4_zombie.png")
 	lib.Must(err)
 
 	// EFFECTS

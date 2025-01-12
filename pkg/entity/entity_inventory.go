@@ -170,7 +170,7 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 		dt := lib.Dt()
 		e.enemySpawnTimer += dt
 		if len(e.currentWave) > 0 {
-			if e.enemySpawnTimer > 0.5 {
+			if e.enemySpawnTimer > 0.8 {
 				e.enemySpawnTimer = 0
 				e.grid.SpawnEnemy(e.currentWave[0])
 				e.currentWave = e.currentWave[1:]
@@ -271,6 +271,12 @@ func (e *EntityInventory) Update(EntitySpawner) error {
 			e.blueprintSelected = towers.TowerTypeNone
 			e.grid.selectedTower = e.hoveredTile
 		}
+	}
+
+	// Cancel tower selection and blueprint placement
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		e.blueprintSelected = towers.TowerTypeNone
+		e.grid.selectedTower = lib.NewVec2I(-1, -1)
 	}
 
 	// Unselect Tower

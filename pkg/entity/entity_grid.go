@@ -8,8 +8,10 @@ import (
 	"jamegam/pkg/enemy"
 	"jamegam/pkg/lib"
 	"jamegam/pkg/spatialhash"
+	"jamegam/pkg/sprites"
 	"jamegam/pkg/towers"
 	"log"
+	"math"
 	"math/rand"
 	"strings"
 
@@ -248,44 +250,50 @@ func (e *EntityGrid) Deinit(EntitySpawner) {
 
 func (e *EntityGrid) Draw(screen *ebiten.Image) {
 	// Draw Grid
-	for x := 0; x <= e.xTiles; x++ {
-		for y := 0; y <= e.yTiles; y++ {
-			drawGridLine(screen, x, y, e.tilePixels)
+	geom := ebiten.GeoM{}
+	geom.Scale(4, 4)
+	screen.DrawImage(sprites.SpriteMap, &ebiten.DrawImageOptions{
+		GeoM: geom,
+	})
 
-			// grid lines have to be drawn +1 tile to the right and down
-			// so we have to check if we are in bounds
-			if x < e.xTiles && y < e.yTiles {
-				if e.mapTiles[y][x] == mapTileTypeEmpty {
-					geom := ebiten.GeoM{}
-					geom.Scale(4, 4)
-					geom.Translate(float64(x*e.tilePixels), float64(y*e.tilePixels))
-					screen.DrawImage(e.floorImage, &ebiten.DrawImageOptions{
-						GeoM: geom,
-					})
-				}
-				if e.mapTiles[y][x] == mapTileTypePlatform {
-					geom := ebiten.GeoM{}
-					geom.Scale(4, 4)
-					geom.Translate(float64(x*e.tilePixels), float64(y*e.tilePixels))
-					screen.DrawImage(e.platformImage, &ebiten.DrawImageOptions{
-						GeoM: geom,
-					})
-				}
-			}
-		}
-	}
+	// for x := 0; x <= e.xTiles; x++ {
+	// 	for y := 0; y <= e.yTiles; y++ {
+	// 		drawGridLine(screen, x, y, e.tilePixels)
+	//
+	// 		// // grid lines have to be drawn +1 tile to the right and down
+	// 		// // so we have to check if we are in bounds
+	// 		// if x < e.xTiles && y < e.yTiles {
+	// 		// 	if e.mapTiles[y][x] == mapTileTypeEmpty {
+	// 		// 		geom := ebiten.GeoM{}
+	// 		// 		geom.Scale(4, 4)
+	// 		// 		geom.Translate(float64(x*e.tilePixels), float64(y*e.tilePixels))
+	// 		// 		screen.DrawImage(e.floorImage, &ebiten.DrawImageOptions{
+	// 		// 			GeoM: geom,
+	// 		// 		})
+	// 		// 	}
+	// 		// 	if e.mapTiles[y][x] == mapTileTypePlatform {
+	// 		// 		geom := ebiten.GeoM{}
+	// 		// 		geom.Scale(4, 4)
+	// 		// 		geom.Translate(float64(x*e.tilePixels), float64(y*e.tilePixels))
+	// 		// 		screen.DrawImage(e.platformImage, &ebiten.DrawImageOptions{
+	// 		// 			GeoM: geom,
+	// 		// 		})
+	// 		// 	}
+	// 		// }
+	// 	}
+	// }
 
 	// Draw Enemy Path
-	for i := 0; i < len(e.enemyPath)-1; i++ {
-		vector.StrokeLine(screen,
-			float32(e.enemyPath[i].X*e.tilePixels+e.tilePixels/2),
-			float32(e.enemyPath[i].Y*e.tilePixels+e.tilePixels/2),
-			float32(e.enemyPath[i+1].X*e.tilePixels+e.tilePixels/2),
-			float32(e.enemyPath[i+1].Y*e.tilePixels+e.tilePixels/2),
-			3.0,
-			color.RGBA{255, 0, 0, 255},
-			false)
-	}
+	// for i := 0; i < len(e.enemyPath)-1; i++ {
+	// 	vector.StrokeLine(screen,
+	// 		float32(e.enemyPath[i].X*e.tilePixels+e.tilePixels/2),
+	// 		float32(e.enemyPath[i].Y*e.tilePixels+e.tilePixels/2),
+	// 		float32(e.enemyPath[i+1].X*e.tilePixels+e.tilePixels/2),
+	// 		float32(e.enemyPath[i+1].Y*e.tilePixels+e.tilePixels/2),
+	// 		3.0,
+	// 		color.RGBA{255, 0, 0, 255},
+	// 		false)
+	// }
 
 	// Draw Enemies
 	e.enemies.FuncAll(func(_ int, enem *enemy.Enemy) {
@@ -301,10 +309,14 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 		enem.SetWander(newWander)
 		wanderDirection := next.Sub(last).Normalize().Rotate(90).Mul(enem.GetWander())
 
+		newBounce := enem.GetBounce() + float32(lib.Dt())*float32(math.Sqrt(float64(enem.GetSpeed())))*10
+		enem.SetBounce(newBounce)
+
 		geom := ebiten.GeoM{}
 		geom.Scale(4, 4)
 		geom.Translate(float64(pos.X*float32(e.tilePixels)), float64(pos.Y*float32(e.tilePixels)))
 		geom.Translate(float64(wanderDirection.X), float64(wanderDirection.Y))
+		geom.Translate(0, math.Sin(float64(newBounce))*5)
 		screen.DrawImage(enem.GetSprite(), &ebiten.DrawImageOptions{
 			GeoM: geom,
 		})
@@ -317,6 +329,10 @@ func (e *EntityGrid) Draw(screen *ebiten.Image) {
 
 		geom.Reset()
 		geom.Scale(4, 4)
+	})
+
+	screen.DrawImage(sprites.SpriteOverMap, &ebiten.DrawImageOptions{
+		GeoM: geom,
 	})
 
 	// Draw Towers

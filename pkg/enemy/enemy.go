@@ -1,6 +1,7 @@
 package enemy
 
 import (
+	"image"
 	"jamegam/pkg/audio"
 	"log"
 	"time"
@@ -33,6 +34,10 @@ type Enemy struct {
 
 	wander         float32 // the sideways wander from the path line
 	WanderVelocity float32
+	bounce         float32
+
+	spriteSheetTimer float32
+	spriteSheetIndex int
 }
 
 func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress float64) *Enemy {
@@ -52,7 +57,7 @@ func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress 
 		ret.currentHealth = 1
 		ret.currentSpeed = 3
 	case EnemyTypeTank:
-		ret.currentHealth = 10
+		ret.currentHealth = 5
 		ret.currentSpeed = 0.8
 	default:
 		panic("Unknown enemy type")
@@ -62,13 +67,31 @@ func NewEnemy(enemyType EnemyType, pathNodeLast, pathNodeNext int, pathProgress 
 }
 
 func (e *Enemy) GetSprite() *ebiten.Image {
+	// i just hope this is called every frame once
+	fps := ebiten.ActualFPS()
+	dt := 1.0 / 60.0
+	if fps > 1/2000 {
+		dt = 1.0 / fps
+	}
+	e.spriteSheetTimer += float32(dt) * e.currentSpeed
+	if e.spriteSheetTimer > 0.1 {
+		e.spriteSheetTimer = 0
+		mod := 4
+		if e.enemyType == EnemyTypeFast {
+			mod = 5
+		}
+		e.spriteSheetIndex = (e.spriteSheetIndex + 1) % mod
+	}
+
 	switch e.enemyType {
 	case EnemyTypeBasic:
-		return SpriteEnemyBasic
+		return SpriteEnemyBasicSheet.SubImage(image.Rect(e.spriteSheetIndex*16, 0, (e.spriteSheetIndex+1)*16, 16)).(*ebiten.Image)
 	case EnemyTypeFast:
-		return SpriteEnemyFast
+		// return SpriteEnemyFast
+		return SpriteEnemyFastSheet.SubImage(image.Rect(e.spriteSheetIndex*16, 0, (e.spriteSheetIndex+1)*16, 16)).(*ebiten.Image)
 	case EnemyTypeTank:
-		return SpriteEnemyTank
+		// return SpriteEnemyTank
+		return SpriteEnemyTankSheet.SubImage(image.Rect(e.spriteSheetIndex*16, 0, (e.spriteSheetIndex+1)*16, 16)).(*ebiten.Image)
 	}
 
 	log.Fatal("Unknown enemy type")
@@ -81,6 +104,14 @@ func (e *Enemy) GetWander() float32 {
 
 func (e *Enemy) SetWander(wander float32) {
 	e.wander = wander
+}
+
+func (e *Enemy) GetBounce() float32 {
+	return e.bounce
+}
+
+func (e *Enemy) SetBounce(bounce float32) {
+	e.bounce = bounce
 }
 
 func (e *Enemy) SetDestroyFunc(f func()) {
