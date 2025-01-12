@@ -2,6 +2,7 @@ package towers
 
 import (
 	"jamegam/pkg/lib"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -74,7 +75,7 @@ func (tc *Towercore) Draw(screen *ebiten.Image) {
 
 // ShouldFire must be called every tick to determine if the tower should fire
 func (tc *Towercore) ShouldFire(dt float64) bool {
-	if tc.lastFiredAgo >= tc.rof {
+	if tc.lastFiredAgo >= tc.rof*(math.Pow(0.9, float64(tc.speedUpgrades))) {
 		tc.lastFiredAgo = 0
 		return true
 	}
