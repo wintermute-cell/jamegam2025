@@ -13,7 +13,7 @@ type TowerAoe struct {
 }
 
 func NewTowerAoe(position lib.Vec2I) *TowerAoe {
-	tc := NewTowercore(3.0, 195.0, spritesheetTowerAoe, position)
+	tc := NewTowercore(3.0, 195.0, SpritesheetTowerAoe, position)
 	tc.animSpeed = 0.20
 	tc.spriteFrames = 5
 	return &TowerAoe{

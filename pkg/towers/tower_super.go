@@ -14,7 +14,7 @@ type TowerSuper struct {
 
 func NewTowerSuper(position lib.Vec2I) *TowerSuper {
 	return &TowerSuper{
-		Towercore: NewTowercore(0.2, 128.0, spritesheetTowerSuper, position),
+		Towercore: NewTowercore(0.2, 128.0, SpritesheetTowerSuper, position),
 	}
 }
 

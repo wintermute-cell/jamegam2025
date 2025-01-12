@@ -14,7 +14,7 @@ type TowerBasic struct {
 
 func NewTowerBasic(position lib.Vec2I) *TowerBasic {
 	return &TowerBasic{
-		Towercore: NewTowercore(1.0, 128.0, spritesheetTowerBasic, position),
+		Towercore: NewTowercore(1.0, 128.0, SpritesheetTowerBasic, position),
 	}
 }
 

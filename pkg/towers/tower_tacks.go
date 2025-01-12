@@ -13,7 +13,7 @@ type TowerTacks struct {
 }
 
 func NewTowerTacks(position lib.Vec2I) *TowerTacks {
-	tc := NewTowercore(2.0, 90.0, spritesheetTowerTacks, position)
+	tc := NewTowercore(2.0, 90.0, SpritesheetTowerTacks, position)
 	tc.animSpeed = 0.12
 	return &TowerTacks{
 		Towercore: tc,

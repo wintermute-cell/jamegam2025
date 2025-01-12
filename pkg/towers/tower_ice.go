@@ -13,7 +13,7 @@ type TowerIce struct {
 }
 
 func NewTowerIce(position lib.Vec2I) *TowerIce {
-	tc := NewTowercore(2.0, 90.0, spritesheetTowerIce, position)
+	tc := NewTowercore(2.0, 90.0, SpritesheetTowerIce, position)
 	tc.animSpeed = 0.1
 	return &TowerIce{
 		Towercore: tc,

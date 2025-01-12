@@ -14,12 +14,12 @@ var (
 	spriteTowerAoe   *ebiten.Image
 	spriteTowerCash  *ebiten.Image
 
-	spritesheetTowerBasic *ebiten.Image
-	spritesheetTowerTacks *ebiten.Image
-	spritesheetTowerIce   *ebiten.Image
-	spritesheetTowerAoe   *ebiten.Image
-	spritesheetTowerCash  *ebiten.Image
-	spritesheetTowerSuper *ebiten.Image
+	SpritesheetTowerBasic *ebiten.Image
+	SpritesheetTowerTacks *ebiten.Image
+	SpritesheetTowerIce   *ebiten.Image
+	SpritesheetTowerAoe   *ebiten.Image
+	SpritesheetTowerCash  *ebiten.Image
+	SpritesheetTowerSuper *ebiten.Image
 )
 
 func init() {
@@ -40,21 +40,21 @@ func init() {
 	spriteTowerCash, _, err = ebitenutil.NewImageFromFile("test_towercash.png")
 	lib.Must(err)
 
-	spritesheetTowerBasic, _, err = ebitenutil.NewImageFromFile("sheet_4_towerbasic.png")
+	SpritesheetTowerBasic, _, err = ebitenutil.NewImageFromFile("sheet_4_towerbasic.png")
 	lib.Must(err)
 
-	spritesheetTowerTacks, _, err = ebitenutil.NewImageFromFile("sheet_4_towertacks.png")
+	SpritesheetTowerTacks, _, err = ebitenutil.NewImageFromFile("sheet_4_towertacks.png")
 	lib.Must(err)
 
-	spritesheetTowerIce, _, err = ebitenutil.NewImageFromFile("sheet_4_towerice.png")
+	SpritesheetTowerIce, _, err = ebitenutil.NewImageFromFile("sheet_4_towerice.png")
 	lib.Must(err)
 
-	spritesheetTowerAoe, _, err = ebitenutil.NewImageFromFile("sheet_5_toweraoe.png")
+	SpritesheetTowerAoe, _, err = ebitenutil.NewImageFromFile("sheet_5_toweraoe.png")
 	lib.Must(err)
 
-	spritesheetTowerCash, _, err = ebitenutil.NewImageFromFile("sheet_8_towercash.png")
+	SpritesheetTowerCash, _, err = ebitenutil.NewImageFromFile("sheet_8_towercash.png")
 	lib.Must(err)
 
-	spritesheetTowerSuper, _, err = ebitenutil.NewImageFromFile("sheet_4_towersuper.png")
+	SpritesheetTowerSuper, _, err = ebitenutil.NewImageFromFile("sheet_4_towersuper.png")
 	lib.Must(err)
 }

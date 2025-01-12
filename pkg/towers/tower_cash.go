@@ -13,7 +13,7 @@ type TowerCash struct {
 }
 
 func NewTowerCash(position lib.Vec2I) *TowerCash {
-	tc := NewTowercore(3.0, 90.0, spritesheetTowerCash, position)
+	tc := NewTowercore(3.0, 90.0, SpritesheetTowerCash, position)
 	tc.spriteFrames = 8
 	return &TowerCash{
 		Towercore: tc,
