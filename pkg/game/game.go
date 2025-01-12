@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"jamegam/pkg/audio"
 	"jamegam/pkg/entity"
 	"jamegam/pkg/lib"
 	"strings"
@@ -36,6 +37,7 @@ func NewGame() *Game {
 
 // Init initializes the game.
 func (g *Game) Init() {
+	audio.Controller.PlayOst()
 	g.tileConfig = TileConfig{16, 12, 64}
 	mapDef := `
 pppppppppppppppp

@@ -34,6 +34,9 @@ type Towercore struct {
 	lookAt lib.Vec2
 
 	animSpeed float64
+
+	settled    bool
+	settleAnim float64
 }
 
 func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position lib.Vec2I) *Towercore {
@@ -46,6 +49,7 @@ func NewTowercore(rof float64, radius float32, sprite *ebiten.Image, position li
 		speedUpgrades:  0,
 		damageUpgrades: 0,
 		animSpeed:      0.06,
+		settleAnim:     -0.2,
 		lookAt:         lib.Vec2{X: 0, Y: 1},
 	}
 
@@ -97,17 +101,26 @@ func (tc *Towercore) Draw(screen *ebiten.Image) {
 	geom.Translate(float64(tc.drawPosition.X), float64(tc.drawPosition.Y))
 	// screen.DrawImage(tc.sprite, &ebiten.DrawImageOptions{GeoM: geom})
 
+	fps := ebiten.ActualFPS()
+	dt := 1.0 / 60.0
+	if fps > 1/2000 {
+		dt = 1.0 / fps
+	}
+
+	if !tc.settled {
+		tc.settleAnim += 6.7 * dt
+		geom.Translate(0, 12*math.Sin(tc.settleAnim))
+		if tc.settleAnim > math.Pi {
+			tc.settled = true
+		}
+	}
+
 	if tc.shotThisTick {
 		tc.shotThisTick = false
 		tc.isAnimating = true
 	}
 
 	if tc.isAnimating {
-		fps := ebiten.ActualFPS()
-		dt := 1.0 / 60.0
-		if fps > 1/2000 {
-			dt = 1.0 / fps
-		}
 		tc.spriteSheetTimer += dt
 		if tc.spriteSheetTimer > 0.06 {
 			tc.spriteSheetTimer = 0

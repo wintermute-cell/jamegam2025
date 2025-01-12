@@ -37,6 +37,7 @@ func init() {
 		"test_pew",
 		"enemy_death_poof",
 		"tower_cash_shot",
+		"tower_cash_shot2",
 		"basic_tower_shoot",
 		"ice_tower_shoot",
 		"aoe_tower_shoot",
@@ -60,6 +61,23 @@ func (a *AudioController) loadSound(name string) {
 	lib.Must(err)
 	a.sounds[name], err = io.ReadAll(streamReader)
 	lib.Must(err)
+}
+
+func (a *AudioController) PlayOst() {
+	ostReader, err := ebitenutil.OpenFile("ost.ogg")
+	lib.Must(err)
+	streamReader, err := vorbis.Decode(a.audioCtx, ostReader)
+	lib.Must(err)
+	loop := audio.NewInfiniteLoop(streamReader, streamReader.Length())
+	player, err := a.audioCtx.NewPlayer(loop)
+	lib.Must(err)
+	player.SetVolume(0.5)
+	player.Play()
+	// player, err := a.audioCtx.NewPlayer(streamReader)
+	// lib.Must(err)
+	// audio.NewInfiniteLoop(player, streamReader.Length()).Play()
+	// player.SetVolume(0.5)
+	// player.Play()
 }
 
 func (a *AudioController) Play(sound string, variance float64) {
