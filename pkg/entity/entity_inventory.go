@@ -944,7 +944,7 @@ func (e *EntityInventory) AddItem(itemType Item) {
 func (e *EntityInventory) GenerateRandomItem(rarity ItemRarity) {
 	switch rarity {
 	case CommonItem:
-		items := []Item{BombTrap, BasicTower, IceTower, CurrencyGiftSmall, DamageBuffSmall, SpeedBuffSmall}
+		items := []Item{BasicTower, IceTower, CurrencyGiftSmall, DamageBuffSmall, SpeedBuffSmall}
 		e.AddItem(items[rand.Intn(len(items))])
 	case RareItem:
 		items := []Item{TackTower, AoeTower, FreeUpgrade, CurrencyGiftMedium, DamageBuffMedium, SpeedBuffMedium}
